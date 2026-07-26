@@ -666,3 +666,75 @@
 .chapter-navigator::-webkit-scrollbar-track, .chapter-rail::-webkit-scrollbar-track { background: transparent; }
 .chapter-navigator::-webkit-scrollbar-thumb, .chapter-rail::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; border: 0; }
 .chapter-navigator:hover::-webkit-scrollbar-thumb, .chapter-rail:hover::-webkit-scrollbar-thumb { background: rgba(28, 35, 58, .25); }
+
+/* ============ 右栏窄列适配:质量卡纵向紧凑版 + 防横向溢出 ============ */
+
+.chapter-navigator, .chapter-rail, .rail-card { min-width: 0; }
+.rail-card { overflow: hidden; }
+
+.rail-card .quality-audit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.rail-card .quality-score {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rail-card .quality-score strong {
+  font-size: 26px;
+  line-height: 1;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  color: var(--tint-deep);
+}
+.rail-card .quality-score span {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+.rail-card .quality-dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--stroke-dark);
+}
+.rail-card .quality-dimensions span {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.rail-card .quality-dimensions span b {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-weight: 600;
+}
+.rail-card .quality-issues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.rail-card .quality-issues span {
+  white-space: normal;
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 3px 9px;
+  border-radius: var(--r-sm);
+  background: var(--orange-wash);
+  color: #B26A00;
+}
+.rail-card .quality-issues .quality-pass {
+  background: var(--green-wash);
+  color: #1F8A43;
+}
