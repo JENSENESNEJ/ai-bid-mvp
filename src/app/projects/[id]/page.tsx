@@ -255,7 +255,7 @@ export default function ProjectDetail() {
           <small>已完成 {generationProgress.completed} 章{generationProgress.working ? ` · 生成或排队中 ${generationProgress.working} 章` : ""}{generationProgress.componentTotal ? ` · 当前章节组件 ${generationProgress.componentCompleted}/${generationProgress.componentTotal}` : ""}{generationProgress.failed ? ` · 失败 ${generationProgress.failed} 章` : ""}；已完成组件会自动保存，临时失败后只补未完成部分。</small>
         </div>
       )}
-      <div className="main-tabs detail-tabs">
+      <div className="detail-tabs">
         <button className={tab === "overview" ? "active" : ""} onClick={() => setTab("overview")}>总览</button>
         <button className={tab === "outline" ? "active" : ""} onClick={() => setTab("outline")}>大纲</button>
         <button className={tab === "chapter" ? "active" : ""} onClick={() => setTab("chapter")}>章节正文</button>
