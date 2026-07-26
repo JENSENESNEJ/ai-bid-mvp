@@ -220,8 +220,8 @@ form > button { width: 100%; margin-top: 12px; }
 /* 红头刊头:文号行 + 宋体大标题 + 双红线 */
 .detail-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 24px; }
 .detail-top > div:first-child { flex: 1; min-width: 0; }
-.detail-top a { display: inline-block; color: var(--navy); text-decoration: none; font-size: 12px; margin-bottom: 26px; }
-.detail-top a:hover { text-decoration: underline; }
+.detail-top > div:first-child > a { display: inline-block; color: var(--navy); text-decoration: none; font-size: 12px; margin-bottom: 26px; }
+.detail-top > div:first-child > a:hover { text-decoration: underline; }
 .detail-top em { color: var(--seal); opacity: .75; }
 .detail-top h1 { max-width: 860px; font-size: 30px; }
 .detail-top p { color: var(--slate); font-size: 11px; font-family: var(--font-data); margin: 4px 0 0; }
