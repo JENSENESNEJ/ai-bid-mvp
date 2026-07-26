@@ -211,7 +211,7 @@ export function ChapterTab({
                   </footer>
                 </>
               ) : (
-                <p className="preview-missing">正在读取本章节正文…</p>
+                <p className="preview-missing"><span className="spinner spinner-sm" />正在读取本章节正文…</p>
               )}
             </>
           ) : (

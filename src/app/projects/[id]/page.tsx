@@ -229,6 +229,7 @@ export default function ProjectDetail() {
         <div className="sk-block" />
         <div className="sk-block" />
         <div className="sk-block" />
+        <span className="spinner" />
         <p>卷宗调取中 · LOADING DOSSIER</p>
       </div>
     </main>

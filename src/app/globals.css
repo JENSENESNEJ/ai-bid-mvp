@@ -314,33 +314,77 @@ form > button { width: 100%; margin-top: 12px; }
   .detail-top h1 { font-size: 21px; }
 }
 
+/* ---------- 加载动效 ---------- */
+
+/* iOS 风格旋转环 */
+.spinner {
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(10, 132, 255, 0) 8%, var(--tint) 92%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  animation: spin .9s linear infinite;
+}
+.spinner-sm { width: 20px; height: 20px; display: inline-block; vertical-align: -5px; margin-right: 10px;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.2px)); }
+@keyframes spin { to { transform: rotate(1turn); } }
+
+/* 生成中状态条:内嵌小转环 */
+.section-loading::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 9px;
+  vertical-align: -2.5px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(255, 149, 0, 0) 10%, var(--orange) 90%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.6px), #000 calc(100% - 1.9px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.6px), #000 calc(100% - 1.9px));
+  animation: spin .9s linear infinite;
+}
+
 /* ---------- 加载骨架 ---------- */
 
 .doc-skeleton { padding-top: 26px; }
 .sk-line {
   display: block;
   border-radius: var(--r-pill);
-  background: linear-gradient(90deg, rgba(28, 35, 58, .08) 25%, rgba(28, 35, 58, .04) 37%, rgba(28, 35, 58, .08) 63%);
-  background-size: 400% 100%;
-  animation: skShimmer 1.4s ease infinite;
+  background: linear-gradient(90deg, rgba(28, 35, 58, .10) 25%, rgba(28, 35, 58, .035) 42%, rgba(28, 35, 58, .10) 60%);
+  background-size: 320% 100%;
+  animation: skShimmer 1.15s ease infinite;
 }
 .sk-eyebrow { width: 180px; height: 10px; margin-bottom: 16px; }
 .sk-title { width: 62%; height: 28px; margin-bottom: 12px; }
 .sk-sub { width: 260px; height: 11px; }
 .doc-skeleton .sk-rule { display: none; }
 .sk-tabs { display: inline-flex; gap: 2px; margin: 22px 0 20px; background: rgba(28, 35, 58, .06); border-radius: var(--r-pill); padding: 4px; }
-.sk-tabs i { width: 64px; height: 30px; border-radius: var(--r-pill); background: rgba(255, 255, 255, .55); }
-.sk-block { position: relative; overflow: hidden; height: 110px; border: 1px solid var(--stroke-dark); border-radius: var(--r-lg); background: var(--glass); margin-bottom: 14px; }
+.sk-tabs i { width: 64px; height: 30px; border-radius: var(--r-pill); background: rgba(255, 255, 255, .55); animation: skBreathe 1.6s ease infinite; }
+.sk-tabs i:nth-child(2) { animation-delay: .12s; }
+.sk-tabs i:nth-child(3) { animation-delay: .24s; }
+.sk-tabs i:nth-child(4) { animation-delay: .36s; }
+.sk-tabs i:nth-child(5) { animation-delay: .48s; }
+.sk-tabs i:nth-child(6) { animation-delay: .6s; }
+.sk-block { position: relative; overflow: hidden; height: 110px; border: 1px solid var(--stroke-dark); border-radius: var(--r-lg); background: var(--glass); margin-bottom: 14px; animation: skBreathe 1.8s ease infinite; }
+.sk-block:nth-of-type(2) { animation-delay: .2s; }
+.sk-block:nth-of-type(3) { animation-delay: .4s; }
 .sk-block::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 30%, rgba(255, 255, 255, .75) 50%, transparent 70%);
-  background-size: 300% 100%;
-  animation: skShimmer 1.4s ease infinite;
+  background: linear-gradient(105deg, transparent 32%, rgba(255, 255, 255, .95) 46%, rgba(10, 132, 255, .07) 52%, transparent 66%);
+  background-size: 280% 100%;
+  animation: skShimmer 1.15s ease infinite;
 }
-.doc-skeleton > p { text-align: center; color: var(--text-3); font-family: var(--font-data); font-size: 11px; letter-spacing: .22em; margin-top: 28px; }
+.doc-skeleton .spinner { margin: 34px auto 0; }
+.doc-skeleton > p { text-align: center; color: var(--text-3); font-family: var(--font-data); font-size: 11px; letter-spacing: .22em; margin-top: 14px; }
+.doc-skeleton > p::after { content: ""; display: inline-block; width: 2em; text-align: left; animation: skDots 1.6s steps(4, end) infinite; }
 @keyframes skShimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@keyframes skBreathe { 50% { opacity: .55; } }
+@keyframes skDots { 0% { content: ""; } 25% { content: "·"; } 50% { content: "··"; } 75% { content: "···"; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
