@@ -220,17 +220,13 @@ export default function ProjectDetail() {
   if (error && !data) return <main className="detail-shell"><Link href="/">← 返回工作台</Link><p className="error">{error}</p></main>;
   if (!data) return (
     <main className="detail-shell">
-      <div className="doc-skeleton">
-        <span className="sk-line sk-eyebrow" />
-        <span className="sk-line sk-title" />
-        <span className="sk-line sk-sub" />
-        <div className="sk-rule" />
-        <div className="sk-tabs"><i /><i /><i /><i /><i /><i /></div>
-        <div className="sk-block" />
-        <div className="sk-block" />
-        <div className="sk-block" />
-        <span className="spinner" />
-        <p>卷宗调取中 · LOADING DOSSIER</p>
+      <div className="load-stage">
+        <div className="load-card">
+          <div className="load-logo">标</div>
+          <div className="load-doc"><i /><i /><i /><i /><i /></div>
+          <div className="load-bar"><i /></div>
+          <p>卷宗调取中</p>
+        </div>
       </div>
     </main>
   );

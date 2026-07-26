@@ -380,43 +380,79 @@ form > button { width: 100%; margin-top: 12px; }
   animation: spin .9s linear infinite;
 }
 
-/* ---------- 加载骨架 ---------- */
+/* ---------- 加载舞台:玻璃卡 + 迷你文档逐行书写 ---------- */
 
-.doc-skeleton { padding-top: 26px; }
-.sk-line {
+.load-stage { min-height: 72vh; display: grid; place-items: center; }
+.load-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 300px;
+  padding: 40px 36px 30px;
+  background: var(--glass-strong);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--stroke-dark);
+  border-radius: 26px;
+  box-shadow: inset 0 1px 0 var(--stroke), var(--shadow-float);
+  animation: loadFloat 4.5s ease-in-out infinite;
+}
+@keyframes loadFloat { 50% { transform: translateY(-6px); } }
+
+.load-logo {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #3B9BFF, var(--tint-deep));
+  color: #fff;
+  font-size: 26px;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(10, 132, 255, .4);
+  animation: logoBreathe 2.2s ease-in-out infinite;
+}
+@keyframes logoBreathe { 50% { transform: scale(1.07); box-shadow: 0 10px 30px rgba(10, 132, 255, .55); } }
+
+/* 迷你文档:一行行"被写出来" */
+.load-doc {
+  width: 150px;
+  padding: 16px 18px;
+  display: grid;
+  gap: 9px;
+  background: #fff;
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-md);
+  box-shadow: 0 4px 14px rgba(31, 38, 135, .08);
+}
+.load-doc i {
   display: block;
+  height: 6px;
   border-radius: var(--r-pill);
-  background: linear-gradient(90deg, rgba(28, 35, 58, .10) 25%, rgba(28, 35, 58, .035) 42%, rgba(28, 35, 58, .10) 60%);
-  background-size: 320% 100%;
-  animation: skShimmer 1.15s ease infinite;
+  background: rgba(28, 35, 58, .14);
+  animation: lineWrite 3s ease infinite both;
 }
-.sk-eyebrow { width: 180px; height: 10px; margin-bottom: 16px; }
-.sk-title { width: 62%; height: 28px; margin-bottom: 12px; }
-.sk-sub { width: 260px; height: 11px; }
-.doc-skeleton .sk-rule { display: none; }
-.sk-tabs { display: inline-flex; gap: 2px; margin: 22px 0 20px; background: rgba(28, 35, 58, .06); border-radius: var(--r-pill); padding: 4px; }
-.sk-tabs i { width: 64px; height: 30px; border-radius: var(--r-pill); background: rgba(255, 255, 255, .55); animation: skBreathe 1.6s ease infinite; }
-.sk-tabs i:nth-child(2) { animation-delay: .12s; }
-.sk-tabs i:nth-child(3) { animation-delay: .24s; }
-.sk-tabs i:nth-child(4) { animation-delay: .36s; }
-.sk-tabs i:nth-child(5) { animation-delay: .48s; }
-.sk-tabs i:nth-child(6) { animation-delay: .6s; }
-.sk-block { position: relative; overflow: hidden; height: 110px; border: 1px solid var(--stroke-dark); border-radius: var(--r-lg); background: var(--glass); margin-bottom: 14px; animation: skBreathe 1.8s ease infinite; }
-.sk-block:nth-of-type(2) { animation-delay: .2s; }
-.sk-block:nth-of-type(3) { animation-delay: .4s; }
-.sk-block::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 32%, rgba(255, 255, 255, .95) 46%, rgba(10, 132, 255, .07) 52%, transparent 66%);
-  background-size: 280% 100%;
-  animation: skShimmer 1.15s ease infinite;
+.load-doc i:nth-child(1) { width: 55%; background: rgba(10, 132, 255, .45); }
+.load-doc i:nth-child(2) { animation-delay: .35s; }
+.load-doc i:nth-child(3) { animation-delay: .7s; }
+.load-doc i:nth-child(4) { animation-delay: 1.05s; }
+.load-doc i:nth-child(5) { width: 70%; animation-delay: 1.4s; }
+@keyframes lineWrite {
+  0% { transform: scaleX(0); transform-origin: left; opacity: 0; }
+  12% { opacity: 1; }
+  35% { transform: scaleX(1); transform-origin: left; }
+  78% { transform: scaleX(1); opacity: 1; }
+  92%, 100% { transform: scaleX(1); opacity: 0; }
 }
-.doc-skeleton .spinner { margin: 34px auto 0; }
-.doc-skeleton > p { text-align: center; color: var(--text-3); font-family: var(--font-data); font-size: 11px; letter-spacing: .22em; margin-top: 14px; }
-.doc-skeleton > p::after { content: ""; display: inline-block; width: 2em; text-align: left; animation: skDots 1.6s steps(4, end) infinite; }
-@keyframes skShimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
-@keyframes skBreathe { 50% { opacity: .55; } }
+
+/* iOS 式流动进度条 */
+.load-bar { width: 170px; height: 4px; border-radius: var(--r-pill); background: rgba(28, 35, 58, .08); overflow: hidden; }
+.load-bar i { display: block; width: 42%; height: 100%; border-radius: var(--r-pill); background: linear-gradient(90deg, #3B9BFF, var(--tint-deep)); animation: barSlide 1.15s ease-in-out infinite; }
+@keyframes barSlide { 0% { transform: translateX(-110%); } 100% { transform: translateX(340%); } }
+
+.load-card p { margin: 0; color: var(--text-3); font-family: var(--font-data); font-size: 11px; letter-spacing: .22em; }
+.load-card p::after { content: ""; display: inline-block; width: 2em; text-align: left; animation: skDots 1.6s steps(4, end) infinite; }
 @keyframes skDots { 0% { content: ""; } 25% { content: "·"; } 50% { content: "··"; } 75% { content: "···"; } }
 
 @media (prefers-reduced-motion: reduce) {
