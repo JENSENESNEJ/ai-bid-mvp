@@ -1,4 +1,4 @@
-/* preview.css —— 章节工作区(导航 + A4 纸页阅读器)· 案头卷宗设计系统 · 颜色一律引用 globals.css :root token */
+/* preview.css —— 章节工作区(导航 + 阅读器 + 操作栏)· iOS 液态玻璃设计系统 · 颜色一律引用 globals.css :root token */
 
 /* ============ 外层容器 ============ */
 
@@ -17,43 +17,46 @@
 }
 
 .model-mode-control span {
-  color: var(--slate);
+  color: var(--text-2);
   font-size: 11px;
   font-weight: 600;
   font-family: var(--font-ui);
 }
 
 .model-mode-control select {
-  background: var(--sheet);
-  border: 1px solid var(--rule-strong);
-  border-radius: var(--radius);
+  background: var(--glass-strong);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-sm);
   font: 12px var(--font-ui);
-  color: var(--ink);
+  color: var(--text);
   padding: 8px 10px;
-  transition: border-color .12s ease;
+  transition: border-color .12s ease, box-shadow .12s ease;
 }
 
 .model-mode-control select:focus {
-  border-color: var(--navy);
+  border-color: var(--tint);
+  box-shadow: 0 0 0 3px var(--tint-wash);
   outline: none;
 }
 
 .model-mode-control small {
-  color: var(--faint);
-  font-size: 10px;
+  color: var(--text-3);
+  font-size: 11px;
   line-height: 1.5;
   max-width: 150px;
 }
 
-/* ============ 全文生成进度(纸面板:左说明 · 右等宽计数) ============ */
+/* ============ 全文生成进度(玻璃面板:左说明 · 右等宽计数) ============ */
 
 .document-generation-progress {
   display: grid;
   gap: 8px;
-  background: var(--sheet);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sheet);
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-lg);
+  box-shadow: inset 0 1px 0 var(--stroke), var(--shadow-glass);
   padding: 16px 20px;
 }
 
@@ -62,18 +65,18 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 16px;
-  color: var(--ink-soft);
+  color: var(--text-2);
   font-size: 12px;
 }
 
 .document-generation-progress > div:first-child b {
   margin-right: 7px;
-  color: var(--navy);
+  color: var(--tint-deep);
   font-weight: 700;
 }
 
 .document-generation-progress > div:first-child strong {
-  color: var(--navy);
+  color: var(--tint-deep);
   font-family: var(--font-data);
   font-variant-numeric: tabular-nums;
   font-size: 12px;
@@ -83,26 +86,26 @@
 .generation-progress-track {
   height: 6px;
   overflow: hidden;
-  border-radius: 3px;
-  background: var(--rule);
+  border-radius: var(--r-pill);
+  background: rgba(28, 35, 58, .08);
 }
 
 .generation-progress-track i {
   display: block;
   height: 100%;
-  border-radius: inherit;
-  background: var(--navy);
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, #3B9BFF, var(--tint-deep));
   transition: width .4s ease;
 }
 
 .document-generation-progress small {
-  color: var(--slate);
+  color: var(--text-2);
   font-size: 11px;
   line-height: 1.6;
 }
 
 .document-generation-progress.has-failures .generation-progress-track i {
-  background: var(--amber);
+  background: var(--orange);
 }
 
 /* ============ 工作区三栏:导航 + 阅读器 + 操作栏 ============ */
@@ -129,20 +132,24 @@
 .rail-card {
   display: grid;
   gap: 10px;
-  background: var(--sheet);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sheet);
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-lg);
+  box-shadow: inset 0 1px 0 var(--stroke), var(--shadow-glass);
   padding: 14px 16px;
 }
 
 .rail-card h4 {
   margin: 0 0 2px;
-  color: var(--ink);
-  font-family: var(--font-doc);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: -.01em;
   font-size: 13px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--stroke-dark);
 }
 
 .rail-card .model-mode-control,
@@ -154,32 +161,35 @@
   width: 100%;
   height: 34px;
   padding: 0 12px;
+  border-radius: var(--r-pill);
   font-size: 12px;
 }
 
 .rail-card .rail-primary {
-  background: var(--navy);
+  background: var(--tint);
   color: #fff;
   font-weight: 700;
+  box-shadow: none;
 }
 
 .rail-card .rail-primary:hover:not(:disabled) {
-  background: var(--navy-deep);
+  background: var(--tint-deep);
 }
 
 .rail-card .rail-secondary {
-  background: var(--sheet);
-  border: 1px solid var(--rule-strong);
-  color: var(--navy);
+  background: var(--glass-strong);
+  border: 1px solid var(--stroke-dark);
+  color: var(--tint-deep);
   font-weight: 600;
+  box-shadow: none;
 }
 
 .rail-card .rail-secondary:hover:not(:disabled) {
-  background: var(--navy-wash);
-  border-color: var(--navy);
+  background: var(--tint-wash);
+  border-color: var(--tint);
 }
 
-/* ---- 章节导航(纸面板,sticky) ---- */
+/* ---- 章节导航(玻璃面板,sticky) ---- */
 
 .chapter-navigator {
   position: sticky;
@@ -187,10 +197,12 @@
   max-height: calc(100vh - 90px);
   overflow-y: auto;
   scrollbar-width: thin;
-  background: var(--sheet);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sheet);
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-lg);
+  box-shadow: inset 0 1px 0 var(--stroke), var(--shadow-glass);
   padding: 16px;
 }
 
@@ -199,7 +211,7 @@
   grid-template-columns: 1fr auto;
   align-items: baseline;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--stroke-dark);
 }
 
 .chapter-navigator > div em {
@@ -208,13 +220,15 @@
 
 .chapter-navigator > div h3 {
   margin: 5px 0 0;
-  color: var(--ink);
-  font-family: var(--font-doc);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: -.01em;
   font-size: 16px;
 }
 
 .chapter-navigator > div span {
-  color: var(--slate);
+  color: var(--text-3);
   font-family: var(--font-data);
   font-variant-numeric: tabular-nums;
   font-size: 11px;
@@ -222,8 +236,10 @@
 
 .chapter-navigator nav section h4 {
   margin: 14px 0 6px;
-  color: var(--ink);
-  font-family: var(--font-doc);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: -.01em;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -234,16 +250,16 @@
   gap: 8px;
   width: 100%;
   margin: 1px 0;
-  padding: 7px 8px 7px 6px;
+  padding: 7px 10px;
   border: 0;
-  border-left: 2px solid transparent;
-  border-radius: 2px;
+  border-radius: var(--r-pill);
   background: transparent;
-  color: var(--slate);
+  color: var(--text-2);
   text-align: left;
   font: 12px/1.5 var(--font-ui);
   cursor: pointer;
-  transition: background .12s ease, color .12s ease;
+  box-shadow: none;
+  transition: background .12s ease, color .12s ease, box-shadow .12s ease;
 }
 
 .chapter-navigator button span {
@@ -252,35 +268,35 @@
 }
 
 .chapter-navigator button:hover {
-  background: var(--paper);
-  color: var(--ink-soft);
+  background: rgba(255, 255, 255, .55);
+  color: var(--text);
 }
 
 .chapter-navigator button.active {
-  background: var(--navy-wash);
-  border-left-color: var(--navy);
-  color: var(--ink);
+  background: #fff;
+  color: var(--tint-deep);
   font-weight: 600;
+  box-shadow: var(--shadow-float);
 }
 
 .chapter-navigator button i {
   flex: 0 0 8px;
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--r-pill);
   background: transparent;
-  border: 1.5px solid var(--rule-strong);
+  border: 1.5px solid var(--text-3);
   box-sizing: border-box;
 }
 
 .chapter-navigator button i.ready {
-  background: var(--pine);
-  border-color: var(--pine);
+  background: var(--green);
+  border-color: var(--green);
 }
 
 .chapter-navigator button i.working {
-  background: var(--amber);
-  border-color: var(--amber);
+  background: var(--orange);
+  border-color: var(--orange);
   animation: chapter-dot-breathe 1.6s ease-in-out infinite;
 }
 
@@ -291,25 +307,27 @@
 
 .chapter-navigator button b {
   flex: 0 0 auto;
-  padding: 2px 5px;
-  border-radius: 2px;
-  background: var(--pine-wash);
-  color: var(--pine);
-  font-size: 9px;
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+  background: var(--green-wash);
+  color: var(--green);
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
-/* ---- 章节阅读器:一张 A4 纸 ---- */
+/* ---- 章节阅读器:主面板(轻玻璃) ---- */
 
 .chapter-reader {
   min-width: 0;
   min-height: 720px;
   padding: 56px 64px;
-  background: var(--sheet);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sheet);
+  background: rgba(255, 255, 255, .88);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-lg);
+  box-shadow: inset 0 1px 0 var(--stroke), var(--shadow-glass);
 }
 
 /* 章节眉题区 */
@@ -319,7 +337,7 @@
   justify-content: space-between;
   gap: 24px;
   padding-bottom: 18px;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--stroke-dark);
   margin-bottom: 28px;
 }
 
@@ -327,18 +345,28 @@
   min-width: 0;
 }
 
+.chapter-reader > header em {
+  color: var(--text-3);
+  font-family: var(--font-data);
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: .06em;
+}
+
 .chapter-reader > header h1 {
   margin: 8px 0 0;
-  color: var(--ink);
-  font-family: var(--font-doc);
-  font-size: 22px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: -.01em;
+  font-size: 20px;
   line-height: 1.4;
 }
 
 .chapter-reader > header .section-budget {
   display: block;
   margin-top: 8px;
-  color: var(--slate);
+  color: var(--text-3);
   font-family: var(--font-data);
   font-variant-numeric: tabular-nums;
   font-size: 11px;
@@ -351,58 +379,53 @@
   margin: 0;
 }
 
-/* 公文正文排版 */
+/* 正文排版 —— 现代文档 */
 
 .preview-rich-content {
-  color: var(--ink-soft);
+  color: var(--text);
 }
 
 .preview-rich-content p {
   margin: 0 0 12px;
-  font-family: var(--font-doc);
-  font-size: 14.5px;
-  line-height: 2;
-  color: var(--ink-soft);
-  text-align: justify;
-  text-indent: 2em; /* 首行缩进两字 —— 公文体 */
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.95;
+  color: var(--text);
+  text-align: left;
 }
 
 .preview-rich-content h2 {
-  margin: 30px 0 12px;
-  padding-left: 10px;
-  border-left: 3px solid var(--seal);
-  color: var(--ink);
+  margin: 32px 0 10px;
+  color: var(--text);
   font-family: var(--font-ui);
   font-weight: 700;
+  letter-spacing: -.01em;
   font-size: 16px;
   line-height: 1.5;
-  text-indent: 0;
 }
 
 .preview-rich-content h3 {
-  margin: 24px 0 10px;
-  color: var(--ink);
+  margin: 24px 0 8px;
+  color: var(--text);
   font-family: var(--font-ui);
-  font-weight: 700;
+  font-weight: 650;
+  letter-spacing: -.01em;
   font-size: 14.5px;
   line-height: 1.5;
-  text-indent: 0;
 }
 
 .preview-rich-content h4 {
-  margin: 20px 0 8px;
-  color: var(--ink);
+  margin: 20px 0 6px;
+  color: var(--text);
   font-family: var(--font-ui);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 13.5px;
   line-height: 1.5;
-  text-indent: 0;
 }
 
 .preview-rich-content .preview-bullet {
   position: relative;
   padding-left: 18px;
-  text-indent: 0;
   font-family: var(--font-ui);
   font-size: 13.5px;
   line-height: 1.9;
@@ -415,29 +438,31 @@
   top: .75em;
   width: 5px;
   height: 5px;
-  background: var(--ink-soft);
+  border-radius: var(--r-pill);
+  background: var(--tint);
 }
 
 .preview-rich-content .preview-numbered {
-  text-indent: 0;
   font-family: var(--font-ui);
   font-size: 13.5px;
   line-height: 1.9;
 }
 
-/* 公文表格 */
+/* 表格(非玻璃,容器圆角) */
 
 .preview-table-wrap {
   width: 100%;
   overflow-x: auto;
   margin: 18px 0;
-  border: 1px solid var(--rule);
+  background: rgba(255, 255, 255, .7);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-md);
 }
 
 .preview-table-wrap table {
   width: 100%;
   border-collapse: collapse;
-  color: var(--ink-soft);
+  color: var(--text);
   font-family: var(--font-ui);
   font-size: 12px;
   line-height: 1.65;
@@ -446,7 +471,7 @@
 .preview-table-wrap th,
 .preview-table-wrap td {
   padding: 9px 10px;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--stroke-dark);
   vertical-align: top;
   text-align: left;
   white-space: normal;
@@ -455,18 +480,22 @@
 }
 
 .preview-table-wrap th {
-  background: var(--paper);
-  color: var(--ink);
+  background: rgba(28, 35, 58, .04);
+  color: var(--text);
   font-weight: 600;
+}
+
+.preview-table-wrap tbody tr:hover {
+  background: rgba(10, 132, 255, .05);
 }
 
 .preview-rich-content pre {
   margin: 14px 0;
   padding: 12px 14px;
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  color: var(--ink-soft);
+  background: rgba(28, 35, 58, .04);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-sm);
+  color: var(--text);
   font-family: var(--font-data);
   font-size: 12px;
   line-height: 1.7;
@@ -474,7 +503,7 @@
   white-space: pre-wrap;
 }
 
-/* 章内最终插图 —— 公文图题 */
+/* 章内最终插图 */
 
 .inline-figures {
   display: grid;
@@ -485,7 +514,7 @@
 .inline-figures figure {
   margin: 0;
   padding-top: 20px;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--stroke-dark);
 }
 
 .inline-figures img {
@@ -494,14 +523,15 @@
   height: auto;
   max-height: 620px;
   object-fit: contain;
-  border: 1px solid var(--rule);
-  background: var(--paper);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-sm);
+  background: var(--glass-strong);
 }
 
 .inline-figures figcaption {
   margin-top: 8px;
   text-align: center;
-  color: var(--slate);
+  color: var(--text-3);
   font-family: var(--font-data);
   font-size: 11px;
 }
@@ -510,10 +540,10 @@
   display: grid;
   min-height: 220px;
   place-items: center;
-  background: var(--paper);
-  border: 1px dashed var(--rule-strong);
-  border-radius: 2px;
-  color: var(--faint);
+  background: rgba(28, 35, 58, .04);
+  border: 1px dashed var(--text-3);
+  border-radius: var(--r-md);
+  color: var(--text-3);
   font-size: 12px;
 }
 
@@ -526,12 +556,12 @@
   gap: 14px;
   margin-top: 32px;
   padding-top: 18px;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--stroke-dark);
 }
 
 .chapter-reader > footer span {
   text-align: center;
-  color: var(--slate);
+  color: var(--text-3);
   font-family: var(--font-data);
   font-size: 11px;
 }
@@ -539,20 +569,21 @@
 .chapter-reader > footer button {
   height: 32px;
   padding: 0 14px;
-  background: var(--sheet);
-  border: 1px solid var(--rule-strong);
-  border-radius: var(--radius);
-  color: var(--navy);
+  background: var(--glass-strong);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-pill);
+  color: var(--tint-deep);
   font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: none;
   transition: background .12s ease, border-color .12s ease;
 }
 
 .chapter-reader > footer button:hover:not(:disabled) {
-  background: var(--navy-wash);
-  border-color: var(--navy);
+  background: var(--tint-wash);
+  border-color: var(--tint);
 }
 
 /* 空态 */
@@ -561,7 +592,7 @@
   margin: 0;
   padding: 40px;
   text-align: center;
-  color: var(--faint);
+  color: var(--text-3);
   font-size: 13px;
 }
 
@@ -612,5 +643,16 @@
   }
   .chapter-reader > footer span {
     display: none;
+  }
+}
+
+/* ============ backdrop-filter 降级 ============ */
+
+@supports not (backdrop-filter: blur(1px)) {
+  .chapter-navigator,
+  .rail-card,
+  .document-generation-progress,
+  .chapter-reader {
+    background: rgba(255, 255, 255, .92);
   }
 }
