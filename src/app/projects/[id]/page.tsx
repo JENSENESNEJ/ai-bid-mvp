@@ -56,7 +56,7 @@ export default function ProjectDetail() {
   const load = useCallback((force = false) =>
     fetch(`/api/projects/${id}`, { cache: "no-store" })
       .then(response => {
-        if (response.status === 401) { window.location.replace("/login"); throw new Error("unauthenticated"); }
+        if (response.status === 401) { try { sessionStorage.clear(); } catch {} window.location.replace("/login"); throw new Error("unauthenticated"); }
         return response.json();
       })
       .then(value => {

@@ -22,7 +22,7 @@ export default function Home() {
   const input = useRef<HTMLInputElement>(null);
 
   const load = () => fetch("/api/projects", { cache: "no-store" }).then(r => {
-    if (r.status === 401) { router.replace("/login"); throw new Error("unauthenticated"); }
+    if (r.status === 401) { try { sessionStorage.clear(); } catch {} router.replace("/login"); throw new Error("unauthenticated"); }
     return r.json();
   }).then(x => {
     setItems(x.projects || []);
