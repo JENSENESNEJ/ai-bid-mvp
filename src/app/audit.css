@@ -1463,3 +1463,80 @@
     background: rgba(255, 255, 255, .92);
   }
 }
+
+/* ============ 总览重构:指标带 / 面板头 / 覆盖率进度 / 步骤条 / 评分列表 ============ */
+
+.metric-strip {
+  display: flex;
+  flex-wrap: wrap;
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-lg);
+  box-shadow: inset 0 1px 0 var(--stroke), var(--shadow-glass);
+  padding: 6px 10px;
+}
+.metric { flex: 1 1 130px; min-width: 128px; padding: 12px 18px; border-left: 1px solid var(--stroke-dark); }
+.metric:first-child { border-left: 0; }
+.metric small { display: block; font-size: 11px; color: var(--text-2); margin-bottom: 4px; white-space: nowrap; }
+.metric strong { font-size: 22px; font-family: var(--font-data); font-variant-numeric: tabular-nums; letter-spacing: -.02em; color: var(--text); line-height: 1.2; white-space: nowrap; }
+.metric strong i { font-style: normal; font-size: 13px; color: var(--text-3); }
+.metric strong.warn { color: #B26A00; }
+.metric strong.ok { color: var(--green); }
+
+.panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.panel-head h2 { font-size: 15px; }
+.panel-head em { margin-bottom: 5px; }
+.panel-tag { flex: 0 0 auto; font-size: 11px; color: var(--tint-deep); background: var(--tint-wash); border-radius: var(--r-pill); padding: 5px 12px; white-space: nowrap; }
+.panel-sub { margin: 6px 0 0; font-size: 11.5px; color: var(--text-2); }
+
+.coverage-total { font-size: 30px; font-family: var(--font-data); font-variant-numeric: tabular-nums; color: var(--green); letter-spacing: -.02em; }
+.coverage-rows { display: grid; margin-top: 12px; }
+.coverage-row { display: grid; grid-template-columns: 112px 1fr 48px auto; gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--stroke-dark); font-size: 12px; }
+.coverage-row span { color: var(--text); font-weight: 500; }
+.coverage-bar { height: 6px; border-radius: var(--r-pill); background: rgba(28, 35, 58, .08); overflow: hidden; }
+.coverage-bar i { display: block; height: 100%; border-radius: var(--r-pill); background: linear-gradient(90deg, #3B9BFF, var(--tint-deep)); transition: width .4s ease; }
+.coverage-row b { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 12px; text-align: right; }
+.coverage-row small { font-size: 11px; color: var(--text-3); font-family: var(--font-data); white-space: nowrap; }
+
+/* 作战图:去卡片化,分栏 + 竖分隔线 */
+.analysis-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: 14px; }
+.analysis-grid article { background: transparent; border: 0; box-shadow: none; border-radius: 0; padding: 0 18px; border-left: 1px solid var(--stroke-dark); }
+.analysis-grid article:first-child { padding-left: 0; border-left: 0; }
+
+/* 蓝图:横向步骤条 */
+.blueprint-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 16px; }
+.blueprint-steps article { position: relative; padding: 0 18px 0 0; }
+.blueprint-steps article b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: var(--r-pill); background: var(--tint-wash); color: var(--tint-deep); font-family: var(--font-data); font-size: 12px; font-weight: 700; margin-bottom: 8px; position: relative; z-index: 1; }
+.blueprint-steps article::before { content: ""; position: absolute; top: 13px; left: 30px; right: 6px; height: 1px; background: var(--stroke-dark); }
+.blueprint-steps article:last-child::before { display: none; }
+.blueprint-steps h3 { font-size: 12.5px; margin: 0 0 4px; font-weight: 600; }
+.blueprint-steps p { font-size: 11px; color: var(--text-2); margin: 0; line-height: 1.6; }
+
+/* 评分任务 + 能力模块合并面板 */
+.scoring-panel { background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid var(--stroke-dark); border-radius: var(--r-lg); box-shadow: inset 0 1px 0 var(--stroke), var(--shadow-glass); padding: 20px 22px; }
+.capability-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 4px; }
+.capability-chips span { font-size: 11.5px; padding: 5px 12px; border-radius: var(--r-pill); background: rgba(255, 255, 255, .6); border: 1px solid var(--stroke-dark); color: var(--text-2); cursor: default; }
+.scoring-list { display: grid; margin-top: 10px; }
+.scoring-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 11px 0; border-top: 1px solid var(--stroke-dark); }
+.scoring-row h3 { font-size: 12.5px; margin: 0 0 3px; font-weight: 600; }
+.scoring-row p { font-size: 11.5px; color: var(--text-2); margin: 0; line-height: 1.6; }
+.scoring-row > span { flex: 0 0 auto; }
+.scoring-row .needs-input { display: block; margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .analysis-grid { grid-template-columns: 1fr 1fr; }
+  .analysis-grid article { border-left: 0; padding: 0 0 12px; }
+  .coverage-row { grid-template-columns: 90px 1fr 44px; }
+  .coverage-row small { display: none; }
+}
+
+/* ============ 大纲树:密度收紧 + 操作悬停浮现 ============ */
+
+.outline-line { padding: 12px 4px; }
+@media (hover: hover) {
+  .outline-node > .node-actions { opacity: 0; transition: opacity .15s ease; }
+  .outline-node:hover > .node-actions,
+  .outline-node:focus-within > .node-actions { opacity: 1; }
+}

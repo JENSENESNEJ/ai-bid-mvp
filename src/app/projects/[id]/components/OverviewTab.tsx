@@ -1,6 +1,6 @@
 "use client";
-// 项目总览标签页 —— 从原 projects/[id]/page.tsx 迁移的只读展示面板
-// detail-stats / routing-budget-panel / coverage-panel / analysis-panel / blueprint-panel / capability-panel / scoring-compiler
+// 项目总览 —— 一条指标带 + 覆盖率进度列表 + 作战图 + 实施步骤条 + 评分任务列表 + 能力标签
+// 设计原则:去掉"卡套卡",数字集中在指标带,面板内用分隔线与对齐组织信息
 
 import { useMemo } from "react";
 import {
@@ -41,7 +41,6 @@ export function OverviewTab({ data, risks, options, lengthMode }: {
     [options, lengthMode],
   );
 
-  // 评分任务按路由类型计数
   const routeCounts = useMemo(
     () => scoringTasks.reduce<Record<string, number>>((result, task) => {
       const route = task.routeType || "unrouted";
@@ -53,71 +52,39 @@ export function OverviewTab({ data, risks, options, lengthMode }: {
 
   return (
     <div className="overview-tab">
-      <section className="detail-stats">
-        <article>
-          <small>已识别招标要求</small>
-          <strong>{data.requirements.length}</strong>
-          <span>自动关联到大纲章节</span>
-        </article>
-        <article>
-          <small>风险提醒</small>
-          <strong>{risks.length}</strong>
-          <span>不阻止继续编写</span>
-        </article>
-        <article>
-          <small>累计模型成本</small>
-          <strong>${Number(data.aiTotals.costUsd || 0).toFixed(4)}</strong>
-          <span>解析、复核、大纲和正文</span>
-        </article>
+      {/* 指标带:所有关键数字一条线看完 */}
+      <section className="metric-strip">
+        <div className="metric"><small>已识别要求</small><strong>{data.requirements.length}</strong></div>
+        <div className="metric"><small>风险提醒</small><strong className={risks.length ? "warn" : "ok"}>{risks.length}</strong></div>
+        <div className="metric"><small>模型成本</small><strong>${Number(data.aiTotals.costUsd || 0).toFixed(2)}</strong></div>
+        {requirementRouting && documentBudget && (
+          <>
+            <div className="metric"><small>唯一主路由</small><strong>{requirementRouting.primaryAssignments || 0}<i>/{requirementRouting.totalRequirements || 0}</i></strong></div>
+            <div className="metric"><small>正文 / 独立矩阵</small><strong>{requirementRouting.narrativePlacements || 0}<i> / {requirementRouting.virtualAssignments || 0}</i></strong></div>
+            <div className="metric"><small>{lengthModeLabels[lengthMode]}预计</small><strong>{selectedTargetPages || documentBudget.targetPages || 0}<i> 页</i></strong></div>
+            <div className="metric"><small>重点章节</small><strong>{documentBudget.highPrioritySections || 0}<i>/{documentBudget.sectionCount || 0}</i></strong></div>
+          </>
+        )}
       </section>
-      {requirementRouting && documentBudget && (
-        <section className="routing-budget-panel">
-          <div>
-            <em>WRITING PLAN</em>
-            <h2>编制预算与需求路由</h2>
-            <p>每条招标要求只设一个主承载位置；参数、资格、商务和实质性条款不会混入普通方案章节。</p>
-          </div>
-          <div className="routing-budget-grid">
-            <article>
-              <small>唯一主路由</small>
-              <strong>{requirementRouting.primaryAssignments || 0}/{requirementRouting.totalRequirements || 0}</strong>
-              <span>平均重复 {Number(requirementRouting.averagePlacements || 0).toFixed(2)} 次</span>
-            </article>
-            <article>
-              <small>正文／独立矩阵</small>
-              <strong>{requirementRouting.narrativePlacements || 0} / {requirementRouting.virtualAssignments || 0}</strong>
-              <span>技术参数等由专用矩阵承载</span>
-            </article>
-            <article>
-              <small>{lengthModeLabels[lengthMode]}预计篇幅</small>
-              <strong>{selectedTargetPages || documentBudget.targetPages || 0} 页</strong>
-              <span>基础预算 {documentBudget.targetPages || 0} 页 · 当前倍率 {lengthModeMultipliers[lengthMode]}×</span>
-            </article>
-            <article>
-              <small>重点章节</small>
-              <strong>{documentBudget.highPrioritySections || 0}</strong>
-              <span>共 {documentBudget.sectionCount || 0} 个末级章节</span>
-            </article>
-          </div>
-        </section>
-      )}
+
       {coverage && coverage.candidateItems > 0 && (
         <section className="coverage-panel">
-          <div className="coverage-heading">
+          <div className="panel-head">
             <div>
               <em>REQUIREMENT COVERAGE</em>
               <h2>招标要求覆盖率审计</h2>
             </div>
-            <strong>{coverage.coverageRate}%</strong>
+            <strong className="coverage-total">{coverage.coverageRate}%</strong>
           </div>
-          <p>候选要求 {coverage.candidateItems} 项 · 已建立响应 {coverage.coveredItems} 项 · 疑似遗漏 {coverage.possibleMissing} 项</p>
-          <div className="coverage-grid">
+          <p className="panel-sub">候选要求 {coverage.candidateItems} 项 · 已建立响应 {coverage.coveredItems} 项 · 疑似遗漏 {coverage.possibleMissing} 项</p>
+          <div className="coverage-rows">
             {Object.entries(coverage.categories || {}).map(([category, item]) => (
-              <article key={category}>
+              <div className="coverage-row" key={category}>
                 <span>{coverageLabels[category] || category}</span>
+                <div className="coverage-bar"><i style={{ width: `${Math.min(100, item.coverageRate)}%` }} /></div>
                 <b>{item.coverageRate}%</b>
-                <small>已覆盖 {item.coveredItems}/{item.candidateItems}{item.possibleMissing ? ` · 待核查 ${item.possibleMissing}` : ""}</small>
-              </article>
+                <small>{item.coveredItems}/{item.candidateItems}{item.possibleMissing ? ` · 待核查 ${item.possibleMissing}` : ""}</small>
+              </div>
             ))}
           </div>
           {coverage.missingSamples?.length ? (
@@ -136,17 +103,18 @@ export function OverviewTab({ data, risks, options, lengthMode }: {
           ) : null}
         </section>
       )}
+
       {analysis && (
         <section className="analysis-panel">
-          <div className="blueprint-heading">
+          <div className="panel-head">
             <div>
               <em>PROJECT BATTLE MAP</em>
               <h2>项目作战图</h2>
             </div>
-            <span>{analysis.deliveryArchetypeLabel || profile?.projectType || "待识别"}</span>
+            <span className="panel-tag">{analysis.deliveryArchetypeLabel || profile?.projectType || "待识别"}</span>
           </div>
           {analysis.archetypeComponents?.length && analysis.deliveryArchetype === "mixed" ? (
-            <div className="archetype-components">组成：{analysis.archetypeComponents.map(item => archetypeComponentLabels[item] || item).join(" + ")}</div>
+            <p className="panel-sub">组成:{analysis.archetypeComponents.map(item => archetypeComponentLabels[item] || item).join(" + ")}</p>
           ) : null}
           <div className="analysis-grid">
             <article>
@@ -167,77 +135,68 @@ export function OverviewTab({ data, risks, options, lengthMode }: {
             </article>
           </div>
           {analysis.knowledgeGaps?.length ? (
-            <p className="knowledge-gap"><b>当前知识缺口：</b>{analysis.knowledgeGaps.slice(0, 5).join("；")}</p>
+            <p className="knowledge-gap"><b>当前知识缺口:</b>{analysis.knowledgeGaps.slice(0, 5).join(";")}</p>
           ) : null}
         </section>
       )}
+
       {profile && blueprint && (
         <section className="blueprint-panel">
-          <div className="blueprint-heading">
+          <div className="panel-head">
             <div>
               <em>PROJECT BLUEPRINT</em>
               <h2>项目实施蓝图</h2>
             </div>
-            <span>{profile.projectType || blueprint.templateName || "综合项目实施"}</span>
+            <span className="panel-tag">{profile.projectType || blueprint.templateName || "综合项目实施"}</span>
           </div>
-          <p>系统先规划完整实施流程，再为每个章节生成写作任务卡，正文将沿用同一套阶段、角色、交付物和质量关卡。</p>
-          <div className="blueprint-phases">
+          <div className="blueprint-steps">
             {(blueprint.phases || []).map((phase, index) => (
               <article key={`${phase.name}-${index}`}>
                 <b>{index + 1}</b>
-                <div>
-                  <h3>{phase.name}</h3>
-                  {phase.objective && <p>{phase.objective}</p>}
-                  {phase.outputs?.length ? <small>输出：{phase.outputs.slice(0, 2).join("、")}</small> : null}
-                </div>
+                <h3>{phase.name}</h3>
+                {phase.objective && <p>{phase.objective}</p>}
               </article>
             ))}
           </div>
         </section>
       )}
-      {capabilityPlan.length > 0 && (
-        <section className="capability-panel">
-          <div className="outline-heading">
+
+      {(capabilityPlan.length > 0 || scoringTasks.length > 0) && (
+        <section className="scoring-panel">
+          <div className="panel-head">
             <div>
-              <em>CAPABILITY REGISTRY</em>
-              <h2>本项目启用的通用能力模块</h2>
+              <em>SCORING & CAPABILITY</em>
+              <h2>评分任务与能力模块</h2>
             </div>
-            <p>{capabilityPlan.length} 个模块 · 按项目作战图动态组合</p>
+            <span className="panel-tag">{scoringTasks.length} 项任务 · {capabilityPlan.length} 个模块</span>
           </div>
-          <div className="capability-grid">
-            {capabilityPlan.map(module => (
-              <article key={module.id}>
-                <h3>{module.name}</h3>
-                {module.methodPattern && <p>{module.methodPattern}</p>}
-                {module.suggestedArtifacts?.length ? <small>建议成果：{module.suggestedArtifacts.join("、")}</small> : null}
-              </article>
-            ))}
-          </div>
+          {capabilityPlan.length > 0 && (
+            <div className="capability-chips">
+              {capabilityPlan.map(module => <span key={module.id} title={module.methodPattern || ""}>{module.name}</span>)}
+            </div>
+          )}
+          {scoringTasks.length > 0 && (
+            <>
+              <div className="route-summary">
+                {Object.entries(routeCounts).map(([route, count]) => (
+                  <span className={`route-${route}`} key={route}>{routeLabels[route] || route} {count}</span>
+                ))}
+              </div>
+              <div className="scoring-list">
+                {scoringTasks.slice(0, 12).map(task => (
+                  <div className="scoring-row" key={task.requirementId}>
+                    <div>
+                      <h3>{task.title}</h3>
+                      {task.responseObjective && <p>{task.responseObjective}</p>}
+                      {task.enterpriseInputsNeeded?.length ? <small className="needs-input">待补企业资料:{task.enterpriseInputsNeeded.join("、")}</small> : null}
+                    </div>
+                    <span className={`route-${task.routeType || "unrouted"}`}>{task.routeLabel || routeLabels[task.routeType || ""] || "待路由"}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </section>
-      )}
-      {scoringTasks.length > 0 && (
-        <details className="scoring-compiler" open>
-          <summary>评分任务编译结果 · {scoringTasks.length} 项</summary>
-          <div className="route-summary">
-            {Object.entries(routeCounts).map(([route, count]) => (
-              <span className={`route-${route}`} key={route}>{routeLabels[route] || route} {count}</span>
-            ))}
-          </div>
-          <div className="scoring-task-grid">
-            {scoringTasks.slice(0, 12).map(task => (
-              <article key={task.requirementId}>
-                <div className="task-title">
-                  <h3>{task.title}</h3>
-                  <span className={`route-${task.routeType || "unrouted"}`}>{task.routeLabel || routeLabels[task.routeType || ""] || "待路由"}</span>
-                </div>
-                {task.responseObjective && <p>{task.responseObjective}</p>}
-                {task.mustCover?.length ? <small><b>必须覆盖：</b>{task.mustCover.slice(0, 3).join("；")}</small> : null}
-                {task.suggestedArtifacts?.length ? <small><b>建议成果：</b>{task.suggestedArtifacts.join("、")}</small> : null}
-                {task.enterpriseInputsNeeded?.length ? <small className="needs-input"><b>待补企业资料：</b>{task.enterpriseInputsNeeded.join("、")}</small> : null}
-              </article>
-            ))}
-          </div>
-        </details>
       )}
     </div>
   );
