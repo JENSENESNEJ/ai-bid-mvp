@@ -51,6 +51,7 @@
 .document-generation-progress {
   display: grid;
   gap: 8px;
+  margin-bottom: 18px;
   background: var(--glass);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
