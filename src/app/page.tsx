@@ -1,65 +1,13 @@
-import Image from "next/image";
-
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
-}
+"use client";
+import Link from "next/link";
+import {FormEvent,useEffect,useRef,useState} from "react";
+type Project={id:string;name:string;fileName:string;fileSize:number;status:string;createdAt:string;progress:number;findings:number};
+const labels:Record<string,string>={uploaded:"等待解析",parsing:"正在解析",extracting:"AI提取中",reviewing:"等待复核",confirmed:"已确认",failed:"处理失败"};
+export default function Home(){const [items,setItems]=useState<Project[]>([]);const [busy,setBusy]=useState(false);const [error,setError]=useState("");const input=useRef<HTMLInputElement>(null);
+const load=()=>fetch("/api/projects",{cache:"no-store"}).then(r=>r.json()).then(x=>setItems(x.projects||[])).catch(()=>setError("项目读取失败"));useEffect(()=>{load();const timer=setInterval(load,3000);return()=>clearInterval(timer)},[]);
+async function upload(e:FormEvent){e.preventDefault();const file=input.current?.files?.[0];if(!file)return setError("请选择PDF或DOCX文件");setBusy(true);setError("");const data=new FormData();data.append("file",file);data.append("name",file.name.replace(/\.[^.]+$/, ""));const r=await fetch("/api/projects",{method:"POST",body:data});const x=await r.json();if(r.ok){setItems(v=>[x.project,...v]);if(input.current)input.current.value=""}else setError(x.error||"上传失败");setBusy(false)}
+const review=items.filter(x=>x.status==="reviewing").length;const findings=items.reduce((n,x)=>n+x.findings,0);
+return <main className="shell"><aside><div className="brand"><b>标</b>标智</div><nav><a className="active">▦ 项目工作台</a><a>⇧ 文件解析</a><a>✓ 条款复核</a><a>▤ 标书编制</a></nav><div className="online">● 系统正常<small>AI任务后台处理</small></div><div className="user"><i>管</i><span>管理员<small>企业工作区</small></span></div></aside><section className="workspace"><header><div><em>AI BID WORKSPACE</em><h1>项目工作台</h1><p>上传招标文件，自动梳理关键条款并进入人工复核。</p></div><button onClick={()=>input.current?.click()}>＋ 新建项目</button></header>
+<div className="stats"><article><i>▦</i><span>项目总数<strong>{items.length}</strong><small>当前工作区</small></span></article><article><i>◷</i><span>待人工复核<strong>{review}</strong><small>关键条款需确认</small></span></article><article><i>✓</i><span>已识别条款<strong>{findings}</strong><small>全部保留原文证据</small></span></article></div>
+<div className="top-grid"><form onSubmit={upload}><div className="title"><span><em>START HERE</em><h2>上传招标文件</h2></span><small>本机存储</small></div><label className="drop"><input ref={input} type="file" accept=".pdf,.doc,.docx"/><b>⇧</b><strong>点击选择 PDF 或 DOCX</strong><span>单个文件最大50MB，保存到独立项目目录</span></label>{error&&<p className="error">{error}</p>}<button disabled={busy}>{busy?"正在上传…":"上传并创建项目"}</button><div className="steps">1 上传解析　—　2 AI提取　—　3 人工复核</div></form><div className="focus"><em>MVP FOCUS</em><h2>第一阶段识别范围</h2><ol><li><b>01</b><span><strong>资格条件</strong><small>主体资格、中小企业、联合体</small></span></li><li><b>02</b><span><strong>废标与实质性条款</strong><small>无效响应、★条款、必须材料</small></span></li><li><b>03</b><span><strong>评分与关键节点</strong><small>分值、截止时间、保证金</small></span></li></ol><p>AI只负责辅助提取，重要结论必须人工确认。</p></div></div>
+<div className="projects"><div className="title"><span><em>RECENT PROJECTS</em><h2>最近项目</h2></span><button className="ghost" onClick={load}>刷新</button></div>{!items.length?<div className="empty">◇<strong>还没有项目</strong><span>上传第一份招标文件后，项目会显示在这里。</span></div>:items.map(x=><article className="row" key={x.id}><i>{x.fileName.toLowerCase().endsWith("pdf")?"PDF":"DOC"}</i><span><strong>{x.name}</strong><small>{x.fileName} · {(x.fileSize/1048576).toFixed(1)} MB</small></span><div><small>处理进度　{x.progress}%</small><b><i style={{width:`${x.progress}%`}}/></b></div><label className={x.status}>{labels[x.status]||x.status}</label><Link className="row-link" href={`/projects/${x.id}`}>→</Link></article>)}</div></section></main>}

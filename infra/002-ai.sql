@@ -1,0 +1,3 @@
+CREATE INDEX IF NOT EXISTS requirements_project_idx ON requirements(project_id,review_status,created_at);
+CREATE TABLE IF NOT EXISTS ai_runs(id uuid PRIMARY KEY,project_id uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,job_id uuid REFERENCES jobs(id) ON DELETE SET NULL,chunk_number integer NOT NULL,model text NOT NULL,status text NOT NULL,input_tokens integer NOT NULL DEFAULT 0,output_tokens integer NOT NULL DEFAULT 0,cost_usd numeric(16,10) NOT NULL DEFAULT 0,duration_ms integer,retries integer NOT NULL DEFAULT 0,error_message text,created_at timestamptz NOT NULL DEFAULT now(),finished_at timestamptz);
+CREATE INDEX IF NOT EXISTS ai_runs_project_idx ON ai_runs(project_id,created_at DESC);
