@@ -86,14 +86,15 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
  const project=await db.query(`SELECT id,name,file_name AS "fileName",file_size AS "fileSize",status,progress,findings_count AS findings,error_message AS "errorMessage",created_at AS "createdAt",updated_at AS "updatedAt" FROM projects WHERE id=$1`,[id]);
  if(!project.rowCount)return NextResponse.json({error:"项目不存在"},{status:404});
  // 其余查询相互独立,并行执行
- const [document,outline,requirements,totals,parameterSummary]=await Promise.all([
+ const [document,outline,requirements,totals,parameterSummary,budgetRow]=await Promise.all([
   db.query(`SELECT format,page_count AS "pageCount",character_count AS "characterCount",jsonb_array_length(blocks) AS "blockCount",coverage_audit AS "coverageAudit",parsed_at AS "parsedAt" FROM documents WHERE project_id=$1`,[id]),
   db.query(`SELECT content,status,version,model,error_message AS "errorMessage",generated_at AS "generatedAt",updated_at AS "updatedAt" FROM outlines WHERE project_id=$1`,[id]),
   db.query(`SELECT id,type,title,normalized_value AS "normalizedValue",mandatory,evidence,review_status AS "reviewStatus",ai_review_status AS "aiReviewStatus",ai_review_reason AS "aiReviewReason",ai_review_suggestion AS "aiReviewSuggestion",ai_review_confidence::float8 AS "aiReviewConfidence",ai_reviewed_at AS "aiReviewedAt",created_at AS "createdAt",updated_at AS "updatedAt" FROM requirements WHERE project_id=$1 ORDER BY mandatory DESC,created_at`,[id]),
   db.query(`SELECT COALESCE(sum(input_tokens),0)::int AS "inputTokens",COALESCE(sum(output_tokens),0)::int AS "outputTokens",COALESCE(sum(cost_usd),0)::float8 AS "costUsd",count(*)::int AS requests,count(*) FILTER(WHERE status='failed')::int AS "failedRequests" FROM ai_runs WHERE project_id=$1`,[id]),
   db.query(`SELECT count(*)::int AS total,count(DISTINCT product_no)::int AS products,count(*) FILTER(WHERE marker='▲')::int AS important,count(*) FILTER(WHERE marker='★')::int AS mandatory,count(*) FILTER(WHERE marker='')::int AS general,count(*) FILTER(WHERE deviation_status='pending')::int AS pending FROM technical_parameter_items WHERE project_id=$1`,[id]),
+  db.query(`SELECT c.project_budget_usd::float8 AS budget FROM projects p LEFT JOIN access_codes c ON c.id=p.access_code_id WHERE p.id=$1`,[id]),
  ]);
  const outlineRow=outline.rows[0]||null;
  const outlinePayload=outlineRow?{...outlineRow,content:view==="full"?outlineRow.content:summarizeOutlineContent(outlineRow.content)}:null;
- return jsonResponse(req,{project:project.rows[0],document:document.rows[0]||null,outline:outlinePayload,requirements:requirements.rows,aiTotals:totals.rows[0],parameterSummary:parameterSummary.rows[0]});
+ return jsonResponse(req,{project:project.rows[0],document:document.rows[0]||null,outline:outlinePayload,requirements:requirements.rows,aiTotals:totals.rows[0],parameterSummary:parameterSummary.rows[0],generationBudget:budgetRow.rows[0]?.budget??null});
 }

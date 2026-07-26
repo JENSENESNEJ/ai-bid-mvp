@@ -293,6 +293,8 @@ export type Detail = {
   requirements: Requirement[];
   aiTotals: { inputTokens: number; outputTokens: number; costUsd: number; requests: number; failedRequests: number };
   parameterSummary?: ParameterSummary;
+  /** 项目归属码的单项目生成预算(USD),null=不限 */
+  generationBudget?: number | null;
 };
 
 export type ExportInfo = { status: string; fileName?: string; errorMessage?: string } | null;

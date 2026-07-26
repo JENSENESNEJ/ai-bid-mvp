@@ -59,3 +59,18 @@ export const sessionCookieOptions = {
   path: "/",
   maxAge: 60 * 60 * 24 * 180,
 };
+
+/** 生成成本预算检查:客户码可配单项目预算(USD),项目累计 AI 成本超预算则拒绝新生成任务 */
+export async function checkGenerationBudget(access: Access, projectId: string): Promise<{ok: true} | {ok: false; used: number; budget: number}> {
+  if (access.isAdmin) return {ok: true};
+  const result = await db.query(
+    `SELECT c.project_budget_usd::float8 AS budget,
+            COALESCE((SELECT sum(r.cost_usd) FROM ai_runs r WHERE r.project_id=$2),0)::float8 AS used
+       FROM access_codes c WHERE c.id=$1`,
+    [access.id, projectId],
+  );
+  const row = result.rows[0];
+  if (!row || row.budget == null) return {ok: true};
+  if (row.used < row.budget) return {ok: true};
+  return {ok: false, used: row.used, budget: row.budget};
+}

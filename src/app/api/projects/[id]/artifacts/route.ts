@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from "next/server";
 import {randomUUID} from "crypto";
-import {canAccessProject,getAccess} from "@/lib/auth";
+import {canAccessProject,checkGenerationBudget,getAccess} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {getQueue} from "@/lib/queue";
 
@@ -27,6 +27,8 @@ export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>
   const access=await getAccess(req);
   if(!access)return NextResponse.json({error:"未登录"},{status:401});
   if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
+  const budgetCheck=await checkGenerationBudget(access,id);
+  if(!budgetCheck.ok)return NextResponse.json({error:`本项目生成额度已用完($${budgetCheck.used.toFixed(2)}/$${budgetCheck.budget.toFixed(2)}),请联系服务方追加`},{status:403});
   let body:{visualMode?:unknown;confirmImageCost?:unknown;regenerateImages?:unknown}={};
   try{body=await req.json()}catch{}
   const visualMode=typeof body.visualMode==="string"?body.visualMode:"diagrams";

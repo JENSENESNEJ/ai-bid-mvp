@@ -56,7 +56,11 @@ export function OverviewTab({ data, risks, options, lengthMode }: {
       <section className="metric-strip">
         <div className="metric"><small>已识别要求</small><strong>{data.requirements.length}</strong></div>
         <div className="metric"><small>风险提醒</small><strong className={risks.length ? "warn" : "ok"}>{risks.length}</strong></div>
-        <div className="metric"><small>模型成本</small><strong>${Number(data.aiTotals.costUsd || 0).toFixed(2)}</strong></div>
+        {data.generationBudget != null ? (
+          <div className="metric"><small>生成额度</small><strong className={Number(data.aiTotals.costUsd || 0) >= data.generationBudget ? "warn" : ""}>${Number(data.aiTotals.costUsd || 0).toFixed(2)}<i>/${data.generationBudget.toFixed(2)}</i></strong></div>
+        ) : (
+          <div className="metric"><small>模型成本</small><strong>${Number(data.aiTotals.costUsd || 0).toFixed(2)}</strong></div>
+        )}
         {requirementRouting && documentBudget && (
           <>
             <div className="metric"><small>唯一主路由</small><strong>{requirementRouting.primaryAssignments || 0}<i>/{requirementRouting.totalRequirements || 0}</i></strong></div>
