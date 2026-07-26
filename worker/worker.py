@@ -5673,12 +5673,8 @@ def process_chapter_editor(job):
                 ),
                 "items": title_backup,
             }
-            with psycopg.connect(DB) as conn:
-                conn.execute(
-                    "UPDATE outlines SET content=%s::jsonb,updated_at=now() WHERE project_id=%s",
-                    (json.dumps(content, ensure_ascii=False), project_id),
-                )
-                conn.commit()
+            # 并发安全:只定点写本章,避免用长事务外的旧整树覆盖并行章节成果
+            persist_outline_node(project_id, (chapter_index,), chapter)
         leaves = outline_leaf_entries(
             chapter.get("children") or [], (chapter_index,)
         )
@@ -5951,7 +5947,7 @@ def process_section_compare(job):
                 (job_id,),
             ).fetchone()
             latest = conn.execute(
-                "SELECT content FROM outlines WHERE project_id=%s",
+                "SELECT content FROM outlines WHERE project_id=%s FOR UPDATE",
                 (project_id,),
             ).fetchone()
             latest_content = latest[0] if latest and isinstance(latest[0], dict) else json.loads(latest[0])
@@ -5995,7 +5991,7 @@ def process_section_compare(job):
         try:
             with psycopg.connect(DB) as conn:
                 latest = conn.execute(
-                    "SELECT content FROM outlines WHERE project_id=%s",
+                    "SELECT content FROM outlines WHERE project_id=%s FOR UPDATE",
                     (project_id,),
                 ).fetchone()
                 if latest:
