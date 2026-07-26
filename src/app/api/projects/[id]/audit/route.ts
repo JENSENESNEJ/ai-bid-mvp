@@ -1,10 +1,14 @@
 import {NextRequest,NextResponse} from "next/server";
 import {randomUUID} from "crypto";
 import {db} from "@/lib/db";
+import {canAccessProject,getAccess} from "@/lib/auth";
 import {getQueue} from "@/lib/queue";
 
-export async function POST(_req:NextRequest,{params}:{params:Promise<{id:string}>}){
+export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const project=await db.query("SELECT id,status FROM projects WHERE id=$1",[id]);
   if(!project.rowCount)return NextResponse.json({error:"项目不存在"},{status:404});
   if(project.rows[0].status==="auditing")return NextResponse.json({error:"该项目正在进行AI复核"},{status:409});

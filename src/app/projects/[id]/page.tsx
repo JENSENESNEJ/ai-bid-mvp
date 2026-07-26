@@ -55,7 +55,10 @@ export default function ProjectDetail() {
 
   const load = useCallback((force = false) =>
     fetch(`/api/projects/${id}`, { cache: "no-store" })
-      .then(response => response.json())
+      .then(response => {
+        if (response.status === 401) { window.location.replace("/login"); throw new Error("unauthenticated"); }
+        return response.json();
+      })
       .then(value => {
         if (value.error) throw new Error(value.error);
         // 数据未变化时跳过 setData,避免整页无谓重渲染

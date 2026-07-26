@@ -1,6 +1,7 @@
 import {NextRequest,NextResponse} from "next/server";
 import {gzipSync} from "zlib";
 import {db} from "@/lib/db";
+import {canAccessProject,getAccess} from "@/lib/auth";
 export const dynamic="force-dynamic";
 
 /** App Router 路由响应不走 Next 内置压缩,大 JSON 手动 gzip(中国-欧洲链路上体积就是延迟) */
@@ -78,6 +79,9 @@ function summarizeOutlineContent(content:AnyNode|null){
 
 export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}){
  const {id}=await params;
+ const access=await getAccess(req);
+ if(!access)return NextResponse.json({error:"未登录"},{status:401});
+ if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
  const view=req.nextUrl.searchParams.get("view")||"summary";
  const project=await db.query(`SELECT id,name,file_name AS "fileName",file_size AS "fileSize",status,progress,findings_count AS findings,error_message AS "errorMessage",created_at AS "createdAt",updated_at AS "updatedAt" FROM projects WHERE id=$1`,[id]);
  if(!project.rowCount)return NextResponse.json({error:"项目不存在"},{status:404});

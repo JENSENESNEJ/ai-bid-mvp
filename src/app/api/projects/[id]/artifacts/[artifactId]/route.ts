@@ -1,6 +1,7 @@
 import {NextRequest,NextResponse} from "next/server";
 import {readFile} from "fs/promises";
 import path from "path";
+import {canAccessProject,getAccess} from "@/lib/auth";
 import {db} from "@/lib/db";
 
 type OutlineNode={title?:string;children?:OutlineNode[]};
@@ -10,8 +11,11 @@ function findNode(chapters:OutlineNode[],targetPath:number[]){
   return node||null;
 }
 
-export async function GET(_req:NextRequest,{params}:{params:Promise<{id:string;artifactId:string}>}){
+export async function GET(req:NextRequest,{params}:{params:Promise<{id:string;artifactId:string}>}){
   const {id,artifactId}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const result=await db.query(
     "SELECT png_path FROM document_artifacts WHERE id=$1 AND project_id=$2 AND status='ready'",
     [artifactId,id],
@@ -30,6 +34,9 @@ export async function GET(_req:NextRequest,{params}:{params:Promise<{id:string;a
 
 export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string;artifactId:string}>}){
   const {id,artifactId}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   let body:{targetPath?:unknown};
   try{body=await req.json()}catch{return NextResponse.json({error:"请求格式错误"},{status:400})}
   if(body.targetPath===null){

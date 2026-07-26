@@ -458,3 +458,92 @@ form > button { width: 100%; margin-top: 12px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- CDK 登录页 ---------- */
+
+.login-stage { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+.login-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 360px;
+  max-width: 100%;
+  padding: 44px 38px 34px;
+  background: var(--glass-strong);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--stroke-dark);
+  border-radius: 26px;
+  box-shadow: inset 0 1px 0 var(--stroke), var(--shadow-float);
+}
+.login-card h1 { font-size: 19px; margin: 6px 0 0; }
+.login-card > p { margin: 0; color: var(--text-2); font-size: 12.5px; }
+.login-card input {
+  width: 100%;
+  height: 46px;
+  margin-top: 8px;
+  text-align: center;
+  font-family: var(--font-data);
+  font-size: 15px;
+  letter-spacing: .12em;
+  color: var(--text);
+  background: rgba(255, 255, 255, .8);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-md);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.login-card input:focus { outline: none; border-color: var(--tint); box-shadow: 0 0 0 3px var(--tint-wash); }
+.login-card input::placeholder { color: var(--text-3); letter-spacing: .08em; }
+.login-error { width: 100%; text-align: center; color: #C4271F; background: var(--red-wash); border-radius: var(--r-sm); padding: 8px 10px; font-size: 12px; }
+.login-card button { width: 100%; height: 42px; font-size: 13.5px; font-weight: 700; }
+.login-card small { color: var(--text-3); font-size: 10.5px; text-align: center; }
+
+/* 侧边栏退出小钮 */
+.user .logout { margin-left: auto; width: 30px; height: 30px; padding: 0; background: transparent; color: var(--text-3); font-size: 15px; box-shadow: none; }
+.user .logout:hover:not(:disabled) { background: var(--red-wash); color: #C4271F; transform: none; box-shadow: none; }
+
+/* ---------- CDK 管理页 ---------- */
+
+.admin-shell { max-width: 1080px; margin: auto; padding: 24px 32px 80px; display: flex; flex-direction: column; gap: 16px; }
+.admin-panel {
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-lg);
+  box-shadow: inset 0 1px 0 var(--stroke), var(--shadow-glass);
+  padding: 20px 22px;
+}
+.admin-create { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-top: 14px; }
+.admin-create label { display: flex; flex-direction: column; gap: 5px; font-size: 11px; color: var(--text-2); }
+.admin-create input {
+  height: 36px;
+  width: 150px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  font-family: var(--font-ui);
+  color: var(--text);
+  background: var(--glass-strong);
+  border: 1px solid var(--stroke-dark);
+  border-radius: var(--r-sm);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.admin-create input:focus { outline: none; border-color: var(--tint); box-shadow: 0 0 0 3px var(--tint-wash); }
+.admin-create button { height: 36px; padding: 0 22px; }
+.created-codes { margin-top: 14px; background: var(--tint-wash); border: 1px solid rgba(10, 132, 255, .22); border-radius: var(--r-md); padding: 12px 14px; }
+.created-codes > div { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--tint-deep); }
+.created-codes button { height: 28px; padding: 0 14px; font-size: 11.5px; }
+.created-codes pre { margin: 10px 0 0; font-family: var(--font-data); font-size: 13px; line-height: 1.9; color: var(--text); white-space: pre-wrap; }
+.admin-table-wrap { margin-top: 12px; overflow-x: auto; }
+.admin-table-wrap table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.admin-table-wrap th { text-align: left; font-weight: 600; color: var(--text-2); padding: 8px 10px; border-bottom: 1px solid var(--stroke-dark); white-space: nowrap; }
+.admin-table-wrap td { padding: 9px 10px; border-bottom: 1px solid var(--stroke-dark); }
+.admin-table-wrap tr.disabled td { opacity: .5; }
+.admin-table-wrap .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.admin-badge { margin-left: 8px; font-size: 10px; font-weight: 600; color: var(--tint-deep); background: var(--tint-wash); border-radius: var(--r-pill); padding: 2px 8px; }
+.state { font-size: 11px; padding: 3px 10px; border-radius: var(--r-pill); white-space: nowrap; }
+.state.on { background: var(--green-wash); color: #1F8A43; }
+.state.off { background: var(--red-wash); color: #C4271F; }
+.row-toggle { height: 26px; padding: 0 12px; font-size: 11px; background: var(--glass-strong); color: var(--text-2); border: 1px solid var(--stroke-dark); box-shadow: none; }
+.row-toggle:hover:not(:disabled) { color: var(--text); background: #fff; transform: none; box-shadow: none; }

@@ -1,10 +1,14 @@
 import {NextRequest,NextResponse} from "next/server";
 import {db} from "@/lib/db";
+import {canAccessProject,getAccess} from "@/lib/auth";
 
 export const dynamic="force-dynamic";
 
 export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const marker=req.nextUrl.searchParams.get("marker");
   const values:unknown[]=[id];
   let markerClause="";
@@ -33,6 +37,9 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
   if(!itemId||!["pending","met","better","deviation"].includes(status)){
     return NextResponse.json({error:"参数响应数据不合法"},{status:400});
   }
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const result=await db.query(
     `UPDATE technical_parameter_items
         SET response_value=$1,deviation_status=$2,evidence_reference=$3,updated_at=now()

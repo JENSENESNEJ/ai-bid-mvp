@@ -1,5 +1,6 @@
 import {NextRequest,NextResponse} from "next/server";
 import {randomUUID} from "crypto";
+import {canAccessProject,getAccess} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {getQueue} from "@/lib/queue";
 
@@ -27,6 +28,9 @@ const titles:Record<string,string>={
 
 export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   let body:{imageType?:unknown;userPrompt?:unknown;confirmCost?:unknown};
   try{body=await req.json()}catch{return NextResponse.json({error:"请求格式错误"},{status:400})}
   const imageType=typeof body.imageType==="string"?body.imageType:"";

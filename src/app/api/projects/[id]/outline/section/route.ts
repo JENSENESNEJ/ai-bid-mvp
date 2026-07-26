@@ -1,6 +1,7 @@
 import {NextRequest,NextResponse} from "next/server";
 import {gzipSync} from "zlib";
 import {randomUUID} from "crypto";
+import {canAccessProject,getAccess} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {getQueue} from "@/lib/queue";
 
@@ -17,6 +18,9 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
   const raw=req.nextUrl.searchParams.get("path")||"";
   const path=raw.split(".").filter(Boolean).map(Number);
   if(!path.length||path.length>6||path.some(value=>!Number.isInteger(value)||value<0||value>99))return NextResponse.json({error:"章节路径无效"},{status:400});
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const jsonbPath=["chapters",String(path[0]),...path.slice(1).flatMap(index=>["children",String(index)])];
   const outline=await db.query(`SELECT content #> $2 AS node,version,updated_at AS "updatedAt" FROM outlines WHERE project_id=$1`,[id,jsonbPath]);
   if(!outline.rowCount)return NextResponse.json({error:"项目大纲不存在"},{status:404});
@@ -39,6 +43,9 @@ export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>
   const modelMode=requestBody.modelMode==="deepseek"||requestBody.modelMode==="gpt"||requestBody.modelMode==="mixed"?requestBody.modelMode:"mixed";
   const lengthMode=requestBody.lengthMode==="standard"||requestBody.lengthMode==="detailed"||requestBody.lengthMode==="extended"||requestBody.lengthMode==="xique"?requestBody.lengthMode:"standard";
   if(!Array.isArray(path)||!path.length||path.length>5||path.some(value=>!Number.isInteger(value)||value<0||value>29))return NextResponse.json({error:"章节路径无效"},{status:400});
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const outline=await db.query("SELECT content FROM outlines WHERE project_id=$1 AND status='ready'",[id]);
   if(!outline.rowCount)return NextResponse.json({error:"项目大纲尚未就绪"},{status:400});
   const content=outline.rows[0].content||{};

@@ -39,6 +39,7 @@ services:
       DATA_DIR: /app/data
       DATABASE_URL: postgresql://ai_bid:${POSTGRES_PASSWORD}@db:5432/ai_bid
       REDIS_URL: redis://redis:6379/0
+      AUTH_SECRET: ${AUTH_SECRET}
     volumes: ["./data:/app/data"]
     mem_limit: 512m
     cpus: 1.5

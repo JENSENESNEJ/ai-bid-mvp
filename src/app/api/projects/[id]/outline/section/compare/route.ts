@@ -1,5 +1,6 @@
 import {NextRequest,NextResponse} from "next/server";
 import {randomUUID} from "crypto";
+import {canAccessProject,getAccess} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {getQueue} from "@/lib/queue";
 
@@ -18,6 +19,9 @@ export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>
   const model=body.model==="gpt-5.5"||body.model==="deepseek-v4-pro"?body.model:"";
   if(!model)return NextResponse.json({error:"对比模型无效"},{status:400});
   if(!Array.isArray(path)||!path.length||path.length>5||path.some(value=>!Number.isInteger(value)||Number(value)<0||Number(value)>29))return NextResponse.json({error:"章节路径无效"},{status:400});
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const outline=await db.query("SELECT content FROM outlines WHERE project_id=$1 AND status='ready'",[id]);
   if(!outline.rowCount)return NextResponse.json({error:"项目大纲尚未就绪"},{status:400});
   const content=outline.rows[0].content||{};

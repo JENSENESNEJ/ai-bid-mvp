@@ -1,6 +1,7 @@
 "use client";
 // 项目工作台首页 —— 卡片流布局(筛选页签 + 搜索 + 卡片网格)
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Project = { id: string; name: string; fileName: string; fileSize: number; status: string; createdAt: string; progress: number; findings: number };
@@ -11,24 +12,37 @@ const FILTERS = [["all", "全部"], ["working", "处理中"], ["reviewing", "待
 type FilterKey = (typeof FILTERS)[number][0];
 
 export default function Home() {
+  const router = useRouter();
   const [items, setItems] = useState<Project[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [query, setQuery] = useState("");
+  const [me, setMe] = useState<{ note: string; isAdmin: boolean } | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
-  const load = () => fetch("/api/projects", { cache: "no-store" }).then(r => r.json()).then(x => {
+  const load = () => fetch("/api/projects", { cache: "no-store" }).then(r => {
+    if (r.status === 401) { router.replace("/login"); throw new Error("unauthenticated"); }
+    return r.json();
+  }).then(x => {
     setItems(x.projects || []);
     try { sessionStorage.setItem("bid:projects", JSON.stringify(x.projects || [])); } catch {}
-  }).catch(() => setError("项目读取失败"));
+  }).catch(reason => { if (reason?.message !== "unauthenticated") setError("项目读取失败"); });
   useEffect(() => {
     try {
       const cached = sessionStorage.getItem("bid:projects");
       if (cached) setItems(JSON.parse(cached));
     } catch {}
     load();
+    fetch("/api/auth/me", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(x => { if (x?.authenticated) setMe({ note: x.note, isAdmin: x.isAdmin }); }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    try { sessionStorage.clear(); } catch {}
+    router.replace("/login");
+  }
   // 有处理中的项目才 3 秒轮询,否则 30 秒慢刷
   useEffect(() => {
     const working = items.some(x => WORKING_STATUS.includes(x.status));
@@ -71,9 +85,14 @@ export default function Home() {
         <a>⇧ 文件解析</a>
         <a>✓ 条款复核</a>
         <a>▤ 标书编制</a>
+        {me?.isAdmin && <Link href="/admin">◆ CDK 管理</Link>}
       </nav>
       <div className="online">● 系统正常<small>AI任务后台处理</small></div>
-      <div className="user"><i>管</i><span>管理员<small>企业工作区</small></span></div>
+      <div className="user">
+        <i>{(me?.note || "客").slice(0, 1)}</i>
+        <span>{me?.note || (me?.isAdmin ? "管理员" : "客户工作区")}<small>{me?.isAdmin ? "管理员账户" : "数据独立隔离"}</small></span>
+        <button type="button" className="logout" onClick={logout} title="退出登录">⎋</button>
+      </div>
     </aside>
     <section className="workspace">
       <header>

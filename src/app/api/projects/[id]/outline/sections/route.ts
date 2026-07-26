@@ -1,5 +1,6 @@
 import {NextRequest,NextResponse} from "next/server";
 import {randomUUID} from "crypto";
+import {canAccessProject,getAccess} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {getQueue} from "@/lib/queue";
 
@@ -52,6 +53,9 @@ function leaves(nodes:Node[],prefix:number[]=[]):{node:Node;path:number[]}[]{
 
 export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   let mode:"quick"|"deep"="quick";
   let modelMode:"deepseek"|"gpt"|"mixed"="mixed";
   let lengthMode:"standard"|"detailed"|"extended"|"xique"="standard";

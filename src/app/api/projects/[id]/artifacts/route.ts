@@ -1,10 +1,14 @@
 import {NextRequest,NextResponse} from "next/server";
 import {randomUUID} from "crypto";
+import {canAccessProject,getAccess} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {getQueue} from "@/lib/queue";
 
-export async function GET(_req:NextRequest,{params}:{params:Promise<{id:string}>}){
+export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const result=await db.query(
     `SELECT id,kind,title,status,error_message AS "errorMessage",metadata,updated_at AS "updatedAt"
        FROM document_artifacts WHERE project_id=$1 ORDER BY created_at,kind`,
@@ -18,10 +22,13 @@ export async function GET(_req:NextRequest,{params}:{params:Promise<{id:string}>
   });
 }
 
-export async function POST(_req:NextRequest,{params}:{params:Promise<{id:string}>}){
+export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   let body:{visualMode?:unknown;confirmImageCost?:unknown;regenerateImages?:unknown}={};
-  try{body=await _req.json()}catch{}
+  try{body=await req.json()}catch{}
   const visualMode=typeof body.visualMode==="string"?body.visualMode:"diagrams";
   if(!["diagrams","mixed","physical_priority"].includes(visualMode)){
     return NextResponse.json({error:"视觉模式无效"},{status:400});

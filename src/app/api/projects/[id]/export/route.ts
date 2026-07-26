@@ -1,16 +1,23 @@
 import {NextRequest,NextResponse} from "next/server";
 import {randomUUID} from "crypto";
+import {canAccessProject,getAccess} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {getQueue} from "@/lib/queue";
 
-export async function GET(_req:NextRequest,{params}:{params:Promise<{id:string}>}){
+export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const result=await db.query("SELECT status,file_name AS \"fileName\",error_message AS \"errorMessage\",updated_at AS \"updatedAt\" FROM document_exports WHERE project_id=$1",[id]);
   return NextResponse.json({export:result.rows[0]||null});
 }
 
-export async function POST(_req:NextRequest,{params}:{params:Promise<{id:string}>}){
+export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
+  const access=await getAccess(req);
+  if(!access)return NextResponse.json({error:"未登录"},{status:401});
+  if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const project=await db.query("SELECT id FROM projects WHERE id=$1",[id]);
   if(!project.rowCount)return NextResponse.json({error:"项目不存在"},{status:404});
   const outline=await db.query("SELECT 1 FROM outlines WHERE project_id=$1 AND status='ready'",[id]);
