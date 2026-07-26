@@ -112,8 +112,8 @@
 
 .bid-workspace {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 248px;
-  gap: 16px;
+  grid-template-columns: 232px minmax(0, 1fr) 226px;
+  gap: 14px;
   align-items: start;
 }
 
@@ -321,7 +321,7 @@
 .chapter-reader {
   min-width: 0;
   min-height: 720px;
-  padding: 56px 64px;
+  padding: 40px 48px;
   background: rgba(255, 255, 255, .88);
   backdrop-filter: blur(14px) saturate(1.4);
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
@@ -656,3 +656,6 @@
     background: rgba(255, 255, 255, .92);
   }
 }
+
+/* 宽屏下限制正文行长在舒适阅读范围,面板可以宽,文字列不过宽 */
+.chapter-reader > * { max-width: 940px; margin-left: auto; margin-right: auto; }

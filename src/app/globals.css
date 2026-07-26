@@ -238,23 +238,36 @@ form > button { width: 100%; margin-top: 12px; }
 
 /* ---------- 详情页 ---------- */
 
-.detail-shell { max-width: 1220px; margin: auto; padding: 34px 44px 80px; }
+.detail-shell { max-width: 1720px; margin: auto; padding: 20px 32px 60px; }
 
-.detail-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 24px; }
-.detail-top > div:first-child { flex: 1; min-width: 0; }
-.detail-top > div:first-child > a { display: inline-flex; align-items: center; color: var(--tint-deep); text-decoration: none; font-size: 12.5px; font-weight: 500; margin-bottom: 22px; padding: 6px 14px; background: var(--glass-strong); border: 1px solid var(--stroke-dark); border-radius: var(--r-pill); transition: box-shadow .15s ease; }
-.detail-top > div:first-child > a:hover { box-shadow: 0 2px 10px rgba(31, 38, 135, .12); }
-.detail-top em { color: var(--text-3); }
-.detail-top h1 { max-width: 860px; font-size: 26px; }
-.detail-top p { color: var(--text-3); font-size: 11px; font-family: var(--font-data); margin: 4px 0 0; }
+/* 单行头部工具栏:返回 | 标题+元信息 | 状态 | 操作 */
+.detail-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+.back-pill {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-pill);
+  background: var(--glass-strong);
+  border: 1px solid var(--stroke-dark);
+  color: var(--tint-deep);
+  text-decoration: none;
+  font-size: 15px;
+  transition: box-shadow .15s ease;
+}
+.back-pill:hover { box-shadow: 0 2px 10px rgba(31, 38, 135, .12); }
+.headline { flex: 1; min-width: 240px; }
+.headline h1 { font-size: 18px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
+.headline p { margin: 2px 0 0; color: var(--text-3); font-size: 10.5px; font-family: var(--font-data); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.status-pill { align-self: flex-start; margin-top: 52px; padding: 8px 16px; font-weight: 600; font-size: 12px; border-radius: var(--r-pill); white-space: nowrap; }
+.status-pill { flex: 0 0 auto; margin: 0; padding: 7px 14px; font-weight: 600; font-size: 11.5px; border-radius: var(--r-pill); white-space: nowrap; }
 .status-pill.confirmed { color: #1F8A43; background: var(--green-wash); border: 1px solid rgba(52, 199, 89, .25); }
 .status-pill.auditing { color: #B26A00; background: var(--orange-wash); border: 1px solid rgba(255, 149, 0, .25); animation: statusPulse 2.4s ease infinite; }
 @keyframes statusPulse { 50% { opacity: .6; } }
 
-.detail-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
-.detail-actions button, .detail-actions a { height: 36px; font-size: 12.5px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: var(--r-pill); text-decoration: none; }
+.detail-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0; }
+.detail-actions button, .detail-actions a { height: 34px; font-size: 12px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: var(--r-pill); text-decoration: none; }
 .detail-actions a { background: var(--green); color: #fff; font-weight: 600; transition: background .15s ease, transform .15s ease, box-shadow .15s ease; }
 .detail-actions a:hover { background: #2AA84C; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(52, 199, 89, .3); }
 .detail-actions .secondary { background: var(--glass-strong); color: var(--tint-deep); border: 1px solid var(--stroke-dark); box-shadow: none; }
@@ -280,7 +293,7 @@ form > button { width: 100%; margin-top: 12px; }
   -webkit-backdrop-filter: var(--blur);
   border-radius: var(--r-pill);
   padding: 4px;
-  margin: 16px 0 18px;
+  margin: 6px 0 14px;
   border: 1px solid var(--stroke-dark);
 }
 .detail-tabs button { height: 34px; padding: 0 16px; font-size: 12.5px; font-weight: 500; background: transparent; color: var(--text-2); box-shadow: none; border-radius: var(--r-pill); }
@@ -304,14 +317,14 @@ form > button { width: 100%; margin-top: 12px; }
 .parameter-show-more:hover:not(:disabled) { background: #fff; }
 
 @media (max-width: 700px) {
-  .detail-shell { padding: 24px 14px; }
-  .detail-top { flex-direction: column; gap: 14px; }
-  .status-pill { margin-top: 0; }
+  .detail-shell { padding: 18px 14px; }
+  .detail-top { gap: 10px; }
+  .headline { min-width: 100%; order: -1; }
+  .headline h1 { white-space: normal; font-size: 17px; }
   .detail-stats { grid-template-columns: 1fr; }
   .detail-actions { gap: 6px; }
   .detail-tabs { display: flex; overflow-x: auto; }
   .section-content-summary { margin-left: 44px; }
-  .detail-top h1 { font-size: 21px; }
 }
 
 /* ---------- 加载动效 ---------- */

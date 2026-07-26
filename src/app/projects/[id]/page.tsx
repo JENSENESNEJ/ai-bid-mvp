@@ -243,21 +243,20 @@ export default function ProjectDetail() {
   return (
     <main className="detail-shell">
       <div className="detail-top">
-        <div>
-          <Link href="/">← 返回项目工作台</Link>
-          <em>AI BID WORKSPACE</em>
-          <h1>{data.project.name}</h1>
+        <Link className="back-pill" href="/" title="返回项目工作台">←</Link>
+        <div className="headline">
+          <h1 title={data.project.name}>{data.project.name}</h1>
           <p>{data.project.fileName}{totalChars > 0 ? ` · 全卷约 ${(totalChars / 10000).toFixed(1)} 万字` : ""}</p>
-          <div className="detail-actions">
-            <button disabled={busy || generating} onClick={() => generateOutline("dynamic")}>{dynamicGenerating ? "GPT正在发现项目结构…" : "生成GPT项目专属目录"}</button>
-            <button className="secondary" disabled={busy || generating} onClick={() => generateOutline("standard")}>标准目录（备用）</button>
-            {exportInfo?.status === "ready"
-              ? <a href={`/api/projects/${id}/export/download`}>下载Word</a>
-              : <button className="secondary" disabled={busy || exportWorking} onClick={exportWord}>{exportWorking ? "Word生成中…" : "导出Word"}</button>}
-            <button className="ghost-refresh" onClick={refresh}>刷新</button>
-          </div>
         </div>
         <label className={`status-pill ${generating ? "auditing" : "confirmed"}`}>{generating ? `正在生成大纲 ${data.project.progress}%` : "大纲已就绪"}</label>
+        <div className="detail-actions">
+          <button disabled={busy || generating} onClick={() => generateOutline("dynamic")}>{dynamicGenerating ? "GPT正在发现项目结构…" : "生成GPT目录"}</button>
+          <button className="secondary" disabled={busy || generating} onClick={() => generateOutline("standard")}>标准目录</button>
+          {exportInfo?.status === "ready"
+            ? <a href={`/api/projects/${id}/export/download`}>下载Word</a>
+            : <button className="secondary" disabled={busy || exportWorking} onClick={exportWord}>{exportWorking ? "Word生成中…" : "导出Word"}</button>}
+          <button className="ghost-refresh" onClick={refresh}>刷新</button>
+        </div>
       </div>
       {error && <p className="error">{error}</p>}
       {exportInfo?.status === "failed" && <p className="error">{exportInfo.errorMessage}</p>}
