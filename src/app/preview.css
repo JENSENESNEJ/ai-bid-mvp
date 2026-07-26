@@ -121,10 +121,10 @@
 
 .chapter-rail {
   position: sticky;
-  top: 70px;
+  top: 14px;
   display: grid;
   gap: 12px;
-  max-height: calc(100vh - 90px);
+  max-height: calc(100vh - 120px);
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -193,8 +193,8 @@
 
 .chapter-navigator {
   position: sticky;
-  top: 70px;
-  max-height: calc(100vh - 90px);
+  top: 14px;
+  max-height: calc(100vh - 120px);
   overflow-y: auto;
   scrollbar-width: thin;
   background: var(--glass);
