@@ -1,6 +1,16 @@
 import {NextRequest,NextResponse} from "next/server";
+import {gzipSync} from "zlib";
 import {db} from "@/lib/db";
 export const dynamic="force-dynamic";
+
+/** App Router 路由响应不走 Next 内置压缩,大 JSON 手动 gzip(中国-欧洲链路上体积就是延迟) */
+function jsonResponse(req:NextRequest,payload:unknown,status=200){
+  const body=JSON.stringify(payload);
+  if(body.length>1024&&(req.headers.get("accept-encoding")||"").includes("gzip")){
+    return new NextResponse(gzipSync(Buffer.from(body)),{status,headers:{"Content-Type":"application/json","Content-Encoding":"gzip","Vary":"Accept-Encoding"}});
+  }
+  return new NextResponse(body,{status,headers:{"Content-Type":"application/json"}});
+}
 
 type AnyNode=Record<string,unknown>;
 
@@ -71,12 +81,15 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
  const view=req.nextUrl.searchParams.get("view")||"summary";
  const project=await db.query(`SELECT id,name,file_name AS "fileName",file_size AS "fileSize",status,progress,findings_count AS findings,error_message AS "errorMessage",created_at AS "createdAt",updated_at AS "updatedAt" FROM projects WHERE id=$1`,[id]);
  if(!project.rowCount)return NextResponse.json({error:"项目不存在"},{status:404});
- const document=await db.query(`SELECT format,page_count AS "pageCount",character_count AS "characterCount",jsonb_array_length(blocks) AS "blockCount",coverage_audit AS "coverageAudit",parsed_at AS "parsedAt" FROM documents WHERE project_id=$1`,[id]);
- const outline=await db.query(`SELECT content,status,version,model,error_message AS "errorMessage",generated_at AS "generatedAt",updated_at AS "updatedAt" FROM outlines WHERE project_id=$1`,[id]);
- const requirements=await db.query(`SELECT id,type,title,normalized_value AS "normalizedValue",mandatory,evidence,review_status AS "reviewStatus",ai_review_status AS "aiReviewStatus",ai_review_reason AS "aiReviewReason",ai_review_suggestion AS "aiReviewSuggestion",ai_review_confidence::float8 AS "aiReviewConfidence",ai_reviewed_at AS "aiReviewedAt",created_at AS "createdAt",updated_at AS "updatedAt" FROM requirements WHERE project_id=$1 ORDER BY mandatory DESC,created_at`,[id]);
- const totals=await db.query(`SELECT COALESCE(sum(input_tokens),0)::int AS "inputTokens",COALESCE(sum(output_tokens),0)::int AS "outputTokens",COALESCE(sum(cost_usd),0)::float8 AS "costUsd",count(*)::int AS requests,count(*) FILTER(WHERE status='failed')::int AS "failedRequests" FROM ai_runs WHERE project_id=$1`,[id]);
- const parameterSummary=await db.query(`SELECT count(*)::int AS total,count(DISTINCT product_no)::int AS products,count(*) FILTER(WHERE marker='▲')::int AS important,count(*) FILTER(WHERE marker='★')::int AS mandatory,count(*) FILTER(WHERE marker='')::int AS general,count(*) FILTER(WHERE deviation_status='pending')::int AS pending FROM technical_parameter_items WHERE project_id=$1`,[id]);
+ // 其余查询相互独立,并行执行
+ const [document,outline,requirements,totals,parameterSummary]=await Promise.all([
+  db.query(`SELECT format,page_count AS "pageCount",character_count AS "characterCount",jsonb_array_length(blocks) AS "blockCount",coverage_audit AS "coverageAudit",parsed_at AS "parsedAt" FROM documents WHERE project_id=$1`,[id]),
+  db.query(`SELECT content,status,version,model,error_message AS "errorMessage",generated_at AS "generatedAt",updated_at AS "updatedAt" FROM outlines WHERE project_id=$1`,[id]),
+  db.query(`SELECT id,type,title,normalized_value AS "normalizedValue",mandatory,evidence,review_status AS "reviewStatus",ai_review_status AS "aiReviewStatus",ai_review_reason AS "aiReviewReason",ai_review_suggestion AS "aiReviewSuggestion",ai_review_confidence::float8 AS "aiReviewConfidence",ai_reviewed_at AS "aiReviewedAt",created_at AS "createdAt",updated_at AS "updatedAt" FROM requirements WHERE project_id=$1 ORDER BY mandatory DESC,created_at`,[id]),
+  db.query(`SELECT COALESCE(sum(input_tokens),0)::int AS "inputTokens",COALESCE(sum(output_tokens),0)::int AS "outputTokens",COALESCE(sum(cost_usd),0)::float8 AS "costUsd",count(*)::int AS requests,count(*) FILTER(WHERE status='failed')::int AS "failedRequests" FROM ai_runs WHERE project_id=$1`,[id]),
+  db.query(`SELECT count(*)::int AS total,count(DISTINCT product_no)::int AS products,count(*) FILTER(WHERE marker='▲')::int AS important,count(*) FILTER(WHERE marker='★')::int AS mandatory,count(*) FILTER(WHERE marker='')::int AS general,count(*) FILTER(WHERE deviation_status='pending')::int AS pending FROM technical_parameter_items WHERE project_id=$1`,[id]),
+ ]);
  const outlineRow=outline.rows[0]||null;
  const outlinePayload=outlineRow?{...outlineRow,content:view==="full"?outlineRow.content:summarizeOutlineContent(outlineRow.content)}:null;
- return NextResponse.json({project:project.rows[0],document:document.rows[0]||null,outline:outlinePayload,requirements:requirements.rows,aiTotals:totals.rows[0],parameterSummary:parameterSummary.rows[0]});
+ return jsonResponse(req,{project:project.rows[0],document:document.rows[0]||null,outline:outlinePayload,requirements:requirements.rows,aiTotals:totals.rows[0],parameterSummary:parameterSummary.rows[0]});
 }

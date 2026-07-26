@@ -45,6 +45,14 @@ export default function ProjectDetail() {
   const [editorBusy, setEditorBusy] = useState(false);
   const stampRef = useRef("");
 
+  // 秒开:先渲染本会话缓存的旧数据,网络返回后静默替换
+  useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem(`bid:detail:${id}`);
+      if (cached) setData(JSON.parse(cached));
+    } catch {}
+  }, [id]);
+
   const load = useCallback((force = false) =>
     fetch(`/api/projects/${id}`, { cache: "no-store" })
       .then(response => response.json())
@@ -56,6 +64,7 @@ export default function ProjectDetail() {
         stampRef.current = stamp;
         setData(value);
         setError("");
+        try { sessionStorage.setItem(`bid:detail:${id}`, JSON.stringify(value)); } catch {}
       })
       .catch(reason => setError(reason.message)), [id]);
   const loadExport = useCallback(() =>

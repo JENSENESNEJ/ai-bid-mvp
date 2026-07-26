@@ -18,8 +18,17 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const input = useRef<HTMLInputElement>(null);
 
-  const load = () => fetch("/api/projects", { cache: "no-store" }).then(r => r.json()).then(x => setItems(x.projects || [])).catch(() => setError("项目读取失败"));
-  useEffect(() => { load(); }, []);
+  const load = () => fetch("/api/projects", { cache: "no-store" }).then(r => r.json()).then(x => {
+    setItems(x.projects || []);
+    try { sessionStorage.setItem("bid:projects", JSON.stringify(x.projects || [])); } catch {}
+  }).catch(() => setError("项目读取失败"));
+  useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem("bid:projects");
+      if (cached) setItems(JSON.parse(cached));
+    } catch {}
+    load();
+  }, []);
   // 有处理中的项目才 3 秒轮询,否则 30 秒慢刷
   useEffect(() => {
     const working = items.some(x => WORKING_STATUS.includes(x.status));

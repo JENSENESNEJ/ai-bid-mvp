@@ -1,4 +1,5 @@
 import {NextRequest,NextResponse} from "next/server";
+import {gzipSync} from "zlib";
 import {randomUUID} from "crypto";
 import {db} from "@/lib/db";
 import {getQueue} from "@/lib/queue";
@@ -22,7 +23,11 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
   const node=outline.rows[0].node;
   if(!node)return NextResponse.json({error:"章节不存在"},{status:404});
   const {children:_children,previousGeneration:_previous,previousEditorial:_previousEditorial,compressedEditorial:_compressed,previousNaturalEditorial:_previousNatural,compressedEditorialRollback:_rollback,...detail}=node as Record<string,unknown>;
-  return NextResponse.json({path,outlineVersion:outline.rows[0].version,outlineUpdatedAt:outline.rows[0].updatedAt,node:detail});
+  const body=JSON.stringify({path,outlineVersion:outline.rows[0].version,outlineUpdatedAt:outline.rows[0].updatedAt,node:detail});
+  if(body.length>1024&&(req.headers.get("accept-encoding")||"").includes("gzip")){
+    return new NextResponse(gzipSync(Buffer.from(body)),{headers:{"Content-Type":"application/json","Content-Encoding":"gzip","Vary":"Accept-Encoding"}});
+  }
+  return new NextResponse(body,{headers:{"Content-Type":"application/json"}});
 }
 
 export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
