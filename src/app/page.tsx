@@ -18,7 +18,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [query, setQuery] = useState("");
-  const [me, setMe] = useState<{ note: string; isAdmin: boolean } | null>(null);
+  const [me, setMe] = useState<{ note: string; isAdmin: boolean; points: { remaining: number } | null } | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
   const load = () => fetch("/api/projects", { cache: "no-store" }).then(r => {
@@ -34,7 +34,7 @@ export default function Home() {
       if (cached) setItems(JSON.parse(cached));
     } catch {}
     load();
-    fetch("/api/auth/me", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(x => { if (x?.authenticated) setMe({ note: x.note, isAdmin: x.isAdmin }); }).catch(() => {});
+    fetch("/api/auth/me", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(x => { if (x?.authenticated) setMe({ note: x.note, isAdmin: x.isAdmin, points: x.points ?? null }); }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -90,7 +90,7 @@ export default function Home() {
       <div className="online">● 系统正常<small>AI任务后台处理</small></div>
       <div className="user">
         <i>{(me?.note || "客").slice(0, 1)}</i>
-        <span>{me?.note || (me?.isAdmin ? "管理员" : "客户工作区")}<small>{me?.isAdmin ? "管理员账户" : "数据独立隔离"}</small></span>
+        <span>{me?.note || (me?.isAdmin ? "管理员" : "客户工作区")}<small>{me?.points ? `剩余积分 ${Math.floor(me.points.remaining)}` : me?.isAdmin ? "管理员账户" : "数据独立隔离"}</small></span>
         <button type="button" className="logout" onClick={logout} title="退出登录">⎋</button>
       </div>
     </aside>

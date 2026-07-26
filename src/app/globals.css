@@ -547,3 +547,4 @@ form > button { width: 100%; margin-top: 12px; }
 .state.off { background: var(--red-wash); color: #C4271F; }
 .row-toggle { height: 26px; padding: 0 12px; font-size: 11px; background: var(--glass-strong); color: var(--text-2); border: 1px solid var(--stroke-dark); box-shadow: none; }
 .row-toggle:hover:not(:disabled) { color: var(--text); background: #fff; transform: none; box-shadow: none; }
+.row-actions { display: flex; gap: 6px; }

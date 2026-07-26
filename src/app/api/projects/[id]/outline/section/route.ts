@@ -47,7 +47,7 @@ export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>
   if(!access)return NextResponse.json({error:"未登录"},{status:401});
   if(!(await canAccessProject(access,id)))return NextResponse.json({error:"项目不存在"},{status:404});
   const budgetCheck=await checkGenerationBudget(access,id);
-  if(!budgetCheck.ok)return NextResponse.json({error:`本项目生成额度已用完($${budgetCheck.used.toFixed(2)}/$${budgetCheck.budget.toFixed(2)}),请联系服务方追加`},{status:403});
+  if(!budgetCheck.ok)return NextResponse.json({error:budgetCheck.message},{status:403});
   const outline=await db.query("SELECT content FROM outlines WHERE project_id=$1 AND status='ready'",[id]);
   if(!outline.rowCount)return NextResponse.json({error:"项目大纲尚未就绪"},{status:400});
   const content=outline.rows[0].content||{};

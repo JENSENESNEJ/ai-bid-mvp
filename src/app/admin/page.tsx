@@ -6,17 +6,20 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 
 type CodeRow = {
   id: string; code: string; note: string; isAdmin: boolean; disabled: boolean;
-  maxProjects: number | null; projectBudget: number | null; expiresAt: string | null; createdAt: string;
+  maxProjects: number | null; projectBudget: number | null; pointsPurchased: number | null;
+  expiresAt: string | null; createdAt: string;
   lastUsedAt: string | null; projectCount: number; costUsd: number;
 };
 
 export default function AdminCodes() {
   const router = useRouter();
   const [codes, setCodes] = useState<CodeRow[]>([]);
+  const [pointsPerUsd, setPointsPerUsd] = useState(100);
   const [count, setCount] = useState("1");
   const [note, setNote] = useState("");
   const [maxProjects, setMaxProjects] = useState("");
   const [projectBudget, setProjectBudget] = useState("");
+  const [initialPoints, setInitialPoints] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [created, setCreated] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -30,7 +33,7 @@ export default function AdminCodes() {
         if (response.status === 403) { router.replace("/"); throw new Error("forbidden"); }
         return response.json();
       })
-      .then(body => setCodes(body.codes || []))
+      .then(body => { setCodes(body.codes || []); if (body.pointsPerUsd) setPointsPerUsd(body.pointsPerUsd); })
       .catch(() => {}), [router]);
   useEffect(() => { load(); }, [load]);
 
@@ -48,6 +51,7 @@ export default function AdminCodes() {
           note,
           maxProjects: maxProjects === "" ? null : Number(maxProjects),
           projectBudget: projectBudget === "" ? null : Number(projectBudget),
+          initialPoints: initialPoints === "" ? null : Number(initialPoints),
           expiresAt: expiresAt || null,
         }),
       });
@@ -64,6 +68,21 @@ export default function AdminCodes() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ disabled: !row.disabled }),
     }).catch(() => {});
+    await load();
+  }
+
+  async function recharge(row: CodeRow) {
+    const raw = window.prompt(`给「${row.note || row.code}」充值多少积分?(1 美元成本 = ${pointsPerUsd} 积分)`);
+    if (!raw) return;
+    const amount = Number(raw);
+    if (!Number.isFinite(amount) || amount <= 0) { setError("充值积分必须是正数"); return; }
+    const response = await fetch(`/api/admin/codes/${row.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ addPoints: amount }),
+    }).catch(() => null);
+    if (response && !response.ok) setError((await response.json()).error || "充值失败");
+    else setError("");
     await load();
   }
 
@@ -90,6 +109,7 @@ export default function AdminCodes() {
         <form className="admin-create" onSubmit={create}>
           <label>数量<input type="number" min={1} max={50} value={count} onChange={e => setCount(e.target.value)} /></label>
           <label>客户备注<input value={note} maxLength={120} placeholder="例如:XX物业公司" onChange={e => setNote(e.target.value)} /></label>
+          <label>初始积分<input type="number" min={0} value={initialPoints} placeholder="留空=不用积分制" onChange={e => setInitialPoints(e.target.value)} /></label>
           <label>项目数上限<input type="number" min={1} value={maxProjects} placeholder="留空=不限" onChange={e => setMaxProjects(e.target.value)} /></label>
           <label>生成预算/项目($)<input type="number" min={0.5} step={0.5} value={projectBudget} placeholder="留空=不限" onChange={e => setProjectBudget(e.target.value)} /></label>
           <label>有效期至<input type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)} /></label>
@@ -112,7 +132,7 @@ export default function AdminCodes() {
         <div className="admin-table-wrap">
           <table>
             <thead>
-              <tr><th>兑换码</th><th>备注</th><th>项目</th><th>消耗/预算</th><th>有效期</th><th>最后使用</th><th>状态</th><th></th></tr>
+              <tr><th>兑换码</th><th>备注</th><th>项目</th><th>积分(剩余/已充)</th><th>实际消耗</th><th>最后使用</th><th>状态</th><th></th></tr>
             </thead>
             <tbody>
               {codes.map(row => (
@@ -120,11 +140,11 @@ export default function AdminCodes() {
                   <td className="mono">{row.code}{row.isAdmin ? <b className="admin-badge">管理</b> : null}</td>
                   <td>{row.note || "—"}</td>
                   <td className="mono">{row.projectCount}{row.maxProjects != null ? `/${row.maxProjects}` : ""}</td>
-                  <td className="mono">${Number(row.costUsd || 0).toFixed(2)}{row.projectBudget != null ? ` / $${row.projectBudget.toFixed(2)}×项目` : " / 不限"}</td>
-                  <td className="mono">{day(row.expiresAt)}</td>
+                  <td className="mono">{row.pointsPurchased != null ? `${Math.max(0, Math.floor(row.pointsPurchased - row.costUsd * pointsPerUsd))} / ${Math.floor(row.pointsPurchased)}` : "—"}</td>
+                  <td className="mono">${Number(row.costUsd || 0).toFixed(2)}{row.projectBudget != null ? ` (预算$${row.projectBudget.toFixed(2)}×项目)` : ""}</td>
                   <td className="mono">{day(row.lastUsedAt)}</td>
                   <td>{row.disabled ? <span className="state off">已停用</span> : <span className="state on">生效中</span>}</td>
-                  <td>{row.isAdmin ? null : <button type="button" className="row-toggle" onClick={() => toggle(row)}>{row.disabled ? "恢复" : "停用"}</button>}</td>
+                  <td>{row.isAdmin ? null : <span className="row-actions"><button type="button" className="row-toggle" onClick={() => recharge(row)}>充值</button><button type="button" className="row-toggle" onClick={() => toggle(row)}>{row.disabled ? "恢复" : "停用"}</button></span>}</td>
                 </tr>
               ))}
             </tbody>

@@ -1,10 +1,10 @@
 import {randomUUID} from "node:crypto";
 import {NextRequest, NextResponse} from "next/server";
 import {db} from "@/lib/db";
-import {generateCode, getAccess} from "@/lib/auth";
+import {generateCode, getAccess, POINTS_PER_USD} from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
-/** CDK 列表(仅 admin):含每码已用项目数 */
+/** CDK 列表(仅 admin):含每码已用项目数、实际消耗与积分 */
 export async function GET(req: NextRequest) {
   const access = await getAccess(req);
   if (!access) return NextResponse.json({error: "未登录"}, {status: 401});
@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
   const result = await db.query(
     `SELECT c.id,c.code,c.note,c.is_admin AS "isAdmin",c.disabled,c.max_projects AS "maxProjects",
             c.project_budget_usd::float8 AS "projectBudget",
+            c.points_purchased::float8 AS "pointsPurchased",
             c.expires_at AS "expiresAt",c.created_at AS "createdAt",c.last_used_at AS "lastUsedAt",
             count(p.id)::int AS "projectCount",
             COALESCE(sum(spend.cost),0)::float8 AS "costUsd"
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
        LEFT JOIN LATERAL (SELECT sum(cost_usd) AS cost FROM ai_runs WHERE project_id=p.id) spend ON true
       GROUP BY c.id ORDER BY c.created_at DESC`,
   );
-  return NextResponse.json({codes: result.rows});
+  return NextResponse.json({codes: result.rows, pointsPerUsd: POINTS_PER_USD});
 }
 
 /** 批量生成 CDK(仅 admin) */
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
   const access = await getAccess(req);
   if (!access) return NextResponse.json({error: "未登录"}, {status: 401});
   if (!access.isAdmin) return NextResponse.json({error: "无权限"}, {status: 403});
-  let body: {count?: unknown; note?: unknown; maxProjects?: unknown; expiresAt?: unknown; projectBudget?: unknown} = {};
+  let body: {count?: unknown; note?: unknown; maxProjects?: unknown; expiresAt?: unknown; projectBudget?: unknown; initialPoints?: unknown} = {};
   try { body = await req.json(); } catch {}
   const count = Math.min(50, Math.max(1, Number(body.count) || 1));
   const note = String(body.note || "").slice(0, 120);
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest) {
   if (maxProjects !== null && !Number.isFinite(maxProjects)) return NextResponse.json({error: "项目上限无效"}, {status: 400});
   const projectBudget = body.projectBudget == null || body.projectBudget === "" ? null : Number(body.projectBudget);
   if (projectBudget !== null && (!Number.isFinite(projectBudget) || projectBudget <= 0)) return NextResponse.json({error: "生成预算无效"}, {status: 400});
+  const initialPoints = body.initialPoints == null || body.initialPoints === "" ? null : Number(body.initialPoints);
+  if (initialPoints !== null && (!Number.isFinite(initialPoints) || initialPoints < 0)) return NextResponse.json({error: "初始积分无效"}, {status: 400});
   let expiresAt: string | null = null;
   if (body.expiresAt) {
     const when = new Date(String(body.expiresAt));
@@ -50,8 +53,8 @@ export async function POST(req: NextRequest) {
       const code = generateCode();
       try {
         await db.query(
-          "INSERT INTO access_codes(id,code,note,max_projects,expires_at,project_budget_usd) VALUES($1,$2,$3,$4,$5,$6)",
-          [id, code, note, maxProjects, expiresAt, projectBudget],
+          "INSERT INTO access_codes(id,code,note,max_projects,expires_at,project_budget_usd,points_purchased) VALUES($1,$2,$3,$4,$5,$6,$7)",
+          [id, code, note, maxProjects, expiresAt, projectBudget, initialPoints],
         );
         created.push({id, code});
         break;

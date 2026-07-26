@@ -60,17 +60,41 @@ export const sessionCookieOptions = {
   maxAge: 60 * 60 * 24 * 180,
 };
 
-/** 生成成本预算检查:客户码可配单项目预算(USD),项目累计 AI 成本超预算则拒绝新生成任务 */
-export async function checkGenerationBudget(access: Access, projectId: string): Promise<{ok: true} | {ok: false; used: number; budget: number}> {
+/** 生成消耗检查:积分制(充值-实际成本×折算率)优先,兼容旧的单项目美元预算 */
+export const POINTS_PER_USD = Number(process.env.POINTS_PER_USD || 100);
+
+export async function checkGenerationBudget(access: Access, projectId: string): Promise<{ok: true} | {ok: false; message: string}> {
   if (access.isAdmin) return {ok: true};
   const result = await db.query(
     `SELECT c.project_budget_usd::float8 AS budget,
-            COALESCE((SELECT sum(r.cost_usd) FROM ai_runs r WHERE r.project_id=$2),0)::float8 AS used
+            c.points_purchased::float8 AS points,
+            COALESCE((SELECT sum(cost_usd) FROM ai_runs WHERE project_id=$2),0)::float8 AS "projectUsed",
+            COALESCE((SELECT sum(r.cost_usd) FROM ai_runs r JOIN projects p ON p.id=r.project_id WHERE p.access_code_id=$1),0)::float8 AS "codeUsed"
        FROM access_codes c WHERE c.id=$1`,
     [access.id, projectId],
   );
   const row = result.rows[0];
-  if (!row || row.budget == null) return {ok: true};
-  if (row.used < row.budget) return {ok: true};
-  return {ok: false, used: row.used, budget: row.budget};
+  if (!row) return {ok: false, message: "账户状态异常,请重新登录"};
+  if (row.points != null) {
+    const remaining = row.points - row.codeUsed * POINTS_PER_USD;
+    if (remaining <= 0) return {ok: false, message: `积分不足(剩余 ${Math.max(0, remaining).toFixed(0)} 分),请联系服务方充值`};
+  }
+  if (row.budget != null && row.projectUsed >= row.budget) {
+    return {ok: false, message: `本项目生成额度已用完($${row.projectUsed.toFixed(2)}/$${row.budget.toFixed(2)}),请联系服务方追加`};
+  }
+  return {ok: true};
+}
+
+/** 某码的积分概况(未启用积分制返回 null) */
+export async function pointsSummary(codeId: string): Promise<{purchased: number; consumed: number; remaining: number} | null> {
+  const result = await db.query(
+    `SELECT c.points_purchased::float8 AS points,
+            COALESCE((SELECT sum(r.cost_usd) FROM ai_runs r JOIN projects p ON p.id=r.project_id WHERE p.access_code_id=$1),0)::float8 AS used
+       FROM access_codes c WHERE c.id=$1`,
+    [codeId],
+  );
+  const row = result.rows[0];
+  if (!row || row.points == null) return null;
+  const consumed = row.used * POINTS_PER_USD;
+  return {purchased: row.points, consumed, remaining: Math.max(0, row.points - consumed)};
 }
