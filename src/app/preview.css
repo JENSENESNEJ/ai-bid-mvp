@@ -124,7 +124,7 @@
   top: 14px;
   display: grid;
   gap: 12px;
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 92px);
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -194,7 +194,7 @@
 .chapter-navigator {
   position: sticky;
   top: 14px;
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 92px);
   overflow-y: auto;
   scrollbar-width: thin;
   background: var(--glass);
@@ -659,3 +659,10 @@
 
 /* 宽屏下限制正文行长在舒适阅读范围,面板可以宽,文字列不过宽 */
 .chapter-reader > * { max-width: 940px; margin-left: auto; margin-right: auto; }
+
+/* 侧栏滚动条:iOS 式悬浮细条,平时隐形,悬停浮现 */
+.chapter-navigator, .chapter-rail { scrollbar-color: rgba(28, 35, 58, .22) transparent; }
+.chapter-navigator::-webkit-scrollbar, .chapter-rail::-webkit-scrollbar { width: 5px; }
+.chapter-navigator::-webkit-scrollbar-track, .chapter-rail::-webkit-scrollbar-track { background: transparent; }
+.chapter-navigator::-webkit-scrollbar-thumb, .chapter-rail::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; border: 0; }
+.chapter-navigator:hover::-webkit-scrollbar-thumb, .chapter-rail:hover::-webkit-scrollbar-thumb { background: rgba(28, 35, 58, .25); }
