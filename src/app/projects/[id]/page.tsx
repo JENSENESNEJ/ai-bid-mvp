@@ -104,6 +104,7 @@ export default function ProjectDetail() {
   const reqMap = useMemo(() => new Map((data?.requirements || []).map(item => [item.id, item])), [data]);
   const risks = useMemo(() => (data?.requirements || []).filter(item => item.aiReviewStatus === "needs_review" || item.aiReviewStatus === "rejected"), [data]);
   const options = useMemo(() => placementOptions(data?.outline?.content?.chapters || []), [data?.outline?.content?.chapters]);
+  const totalChars = useMemo(() => options.reduce((sum, option) => sum + (option.node.contentChars || 0), 0), [options]);
   const generationProgress = useMemo(() => {
     const nodes = options.map(option => option.node);
     const completed = nodes.filter(node => node.contentStatus === "ready" && Boolean(node.generationModel)).length;
@@ -231,7 +232,7 @@ export default function ProjectDetail() {
           <Link href="/">← 返回项目工作台</Link>
           <em>AI BID WORKSPACE</em>
           <h1>{data.project.name}</h1>
-          <p>{data.project.fileName}</p>
+          <p>{data.project.fileName}{totalChars > 0 ? ` · 全卷约 ${(totalChars / 10000).toFixed(1)} 万字` : ""}</p>
           <div className="detail-actions">
             <button disabled={busy || generating} onClick={() => generateOutline("dynamic")}>{dynamicGenerating ? "GPT正在发现项目结构…" : "生成GPT项目专属目录"}</button>
             <button className="secondary" disabled={busy || generating} onClick={() => generateOutline("standard")}>标准目录（备用）</button>
@@ -305,6 +306,8 @@ export default function ProjectDetail() {
           onGenerateAll={generateAll}
           onGenerateChapter={generateChapter}
           onEditFirstChapter={editFirstChapter}
+          onGenerateSection={generateSection}
+          onCompareSection={compareSection}
           onError={setError}
           focusPath={chapterFocus}
         />

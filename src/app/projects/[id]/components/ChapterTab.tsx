@@ -35,6 +35,8 @@ export function ChapterTab({
   onGenerateAll,
   onGenerateChapter,
   onEditFirstChapter,
+  onGenerateSection,
+  onCompareSection,
   onError,
   focusPath,
 }: {
@@ -51,6 +53,8 @@ export function ChapterTab({
   onGenerateAll: (mode: "quick" | "deep") => void;
   onGenerateChapter: (chapterIndex: number) => void;
   onEditFirstChapter: () => void;
+  onGenerateSection: (path: number[]) => void;
+  onCompareSection: (path: number[]) => void;
   onError: (msg: string) => void;
   /** 从其他标签页跳入时要定位的章节路径(如大纲页「在章节正文页查看」) */
   focusPath?: number[];
@@ -118,57 +122,6 @@ export function ChapterTab({
 
   return (
     <section className="preview-panel">
-      <div className="preview-toolbar">
-        <div>
-          <em>FULL DOCUMENT</em>
-          <h2>投标文件章节工作区</h2>
-          <p>从左侧选择章节，右侧查看正文、质量评分和最终插图；网页预览与Word导出使用同一套插图位置。</p>
-        </div>
-        <div className="generation-controls">
-          <label className="model-mode-control">
-            <span>正文生成模式</span>
-            <select value={textModelMode} disabled={busy} onChange={event => onTextModelMode(event.target.value as TextModelMode)}>
-              <option value="deepseek">DeepSeek 全文</option>
-              <option value="gpt">GPT 全文</option>
-              <option value="mixed">智能混合</option>
-            </select>
-            <small>{modelModeDescriptions[textModelMode]}</small>
-          </label>
-          <label className="model-mode-control">
-            <span>正文篇幅档位</span>
-            <select value={lengthMode} disabled={busy} onChange={event => onLengthMode(event.target.value as LengthMode)}>
-              <option value="standard">标准稿</option>
-              <option value="detailed">深度稿</option>
-              <option value="extended">超长稿</option>
-              <option value="xique">喜鹊长篇</option>
-            </select>
-            <small>{lengthModeDescriptions[lengthMode]}</small>
-          </label>
-          <button className="quick-generate" disabled={busy} onClick={() => onGenerateAll("quick")}>快速生成响应骨架</button>
-          <button
-            className="quick-generate"
-            disabled={busy || !selectedPreview}
-            onClick={() => {
-              const chapterIndex = selectedPreview?.path?.[0];
-              if (chapterIndex !== undefined) onGenerateChapter(chapterIndex);
-            }}
-          >
-            {busy ? "正在加入生成队列…" : `只生成第 ${(selectedPreview?.path?.[0] ?? 0) + 1} 章`}
-          </button>
-          <button className="primary" disabled={busy} onClick={() => onGenerateAll("deep")}>
-            {busy ? "正在加入生成队列…" : `用${modelModeLabels[textModelMode]}生成全文`}
-          </button>
-          <button
-            className="quick-generate"
-            disabled={busy || editorBusy || firstChapter?.editorStatus === "queued" || firstChapter?.editorStatus === "editing"}
-            onClick={onEditFirstChapter}
-          >
-            {firstChapter?.editorStatus === "queued" || firstChapter?.editorStatus === "editing"
-              ? `第一章总编中 ${firstChapter.editorProgress || 0}%`
-              : "总编第一章样板"}
-          </button>
-        </div>
-      </div>
       <div className="bid-workspace">
         <aside className="chapter-navigator">
           <div>
@@ -207,7 +160,7 @@ export function ChapterTab({
                 <>
                   <header>
                     <div>
-                      <em>CHAPTER {selectedPreview.path.map(value => value + 1).join(".")}</em>
+                      <em>CHAPTER {selectedPreview.path.map(value => value + 1).join(".")}{fullNode?.content ? ` · ${fullNode.content.length} 字` : ""}</em>
                       <h1>{selectedPreview.title}</h1>
                       {fullNode.brief?.pageBudget && (
                         <small className="section-budget">
@@ -218,7 +171,6 @@ export function ChapterTab({
                         </small>
                       )}
                     </div>
-                    <QualityAuditView audit={fullNode.qualityAudit} compact />
                   </header>
                   <PreviewContent text={fullNode.content} title={selectedPreview.title} />
                   {selectedPreviewArtifacts.length ? (
@@ -266,6 +218,79 @@ export function ChapterTab({
             <p className="preview-missing">大纲中暂无可预览的末级章节。</p>
           )}
         </article>
+        <aside className="chapter-rail">
+          <div className="rail-card">
+            <h4>生成设置</h4>
+            <label className="model-mode-control">
+              <span>正文生成模式</span>
+              <select value={textModelMode} disabled={busy} onChange={event => onTextModelMode(event.target.value as TextModelMode)}>
+                <option value="deepseek">DeepSeek 全文</option>
+                <option value="gpt">GPT 全文</option>
+                <option value="mixed">智能混合</option>
+              </select>
+              <small>{modelModeDescriptions[textModelMode]}</small>
+            </label>
+            <label className="model-mode-control">
+              <span>正文篇幅档位</span>
+              <select value={lengthMode} disabled={busy} onChange={event => onLengthMode(event.target.value as LengthMode)}>
+                <option value="standard">标准稿</option>
+                <option value="detailed">深度稿</option>
+                <option value="extended">超长稿</option>
+                <option value="xique">喜鹊长篇</option>
+              </select>
+              <small>{lengthModeDescriptions[lengthMode]}</small>
+            </label>
+          </div>
+          <div className="rail-card">
+            <h4>本节操作</h4>
+            <button
+              className="rail-primary"
+              disabled={busy || !selectedPreview || selectedPreview.node.contentStatus === "generating" || selectedPreview.node.contentStatus === "retrying"}
+              onClick={() => selectedPreview && onGenerateSection(selectedPreview.path)}
+            >
+              {selectedPreview?.node.contentStatus === "generating"
+                ? "正文生成中…"
+                : selectedPreview?.node.contentStatus === "retrying"
+                  ? "等待自动重试…"
+                  : selectedPreview?.node.hasContent
+                    ? "重新生成本节"
+                    : "生成本节正文"}
+            </button>
+            <button className="rail-secondary" disabled={busy || !selectedPreview?.node.hasContent} onClick={() => selectedPreview && onCompareSection(selectedPreview.path)}>对比 DeepSeek / GPT</button>
+          </div>
+          <div className="rail-card">
+            <h4>整卷操作</h4>
+            <button
+              className="rail-secondary"
+              disabled={busy || !selectedPreview}
+              onClick={() => {
+                const chapterIndex = selectedPreview?.path?.[0];
+                if (chapterIndex !== undefined) onGenerateChapter(chapterIndex);
+              }}
+            >
+              只生成第 {(selectedPreview?.path?.[0] ?? 0) + 1} 章
+            </button>
+            <button className="rail-secondary" disabled={busy} onClick={() => onGenerateAll("quick")}>快速生成响应骨架</button>
+            <button className="rail-primary" disabled={busy} onClick={() => onGenerateAll("deep")}>
+              {busy ? "正在加入生成队列…" : `用${modelModeLabels[textModelMode]}生成全文`}
+            </button>
+            <button
+              className="rail-secondary"
+              disabled={busy || editorBusy || firstChapter?.editorStatus === "queued" || firstChapter?.editorStatus === "editing"}
+              onClick={onEditFirstChapter}
+            >
+              {firstChapter?.editorStatus === "queued" || firstChapter?.editorStatus === "editing"
+                ? `第一章总编中 ${firstChapter.editorProgress || 0}%`
+                : "总编第一章样板"}
+            </button>
+          </div>
+          {fullNode?.qualityAudit && (
+            <div className="rail-card">
+              <h4>本节质量</h4>
+              <QualityAuditView audit={fullNode.qualityAudit} />
+            </div>
+          )}
+        </aside>
       </div>
     </section>
   );

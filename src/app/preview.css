@@ -7,44 +7,7 @@
   gap: 16px;
 }
 
-/* ============ 工具栏(纸面板:标题区 + 生成控制) ============ */
-
-.preview-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px 24px;
-  background: var(--sheet);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sheet);
-  padding: 22px 24px;
-}
-
-.preview-toolbar > div:first-child {
-  min-width: 0;
-  max-width: 520px;
-}
-
-.preview-toolbar h2 {
-  margin: 6px 0 6px;
-}
-
-.preview-toolbar p {
-  margin: 0;
-  color: var(--slate);
-  font-size: 11px;
-  line-height: 1.7;
-}
-
-.generation-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: flex-end;
-  align-items: flex-end;
-}
+/* ============ 生成控制(右栏内复用) ============ */
 
 .model-mode-control {
   display: flex;
@@ -80,44 +43,6 @@
   font-size: 10px;
   line-height: 1.5;
   max-width: 150px;
-}
-
-.preview-toolbar button,
-.preview-toolbar a {
-  display: inline-grid;
-  place-items: center;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: var(--radius);
-  text-decoration: none;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background .12s ease, border-color .12s ease, color .12s ease;
-}
-
-.preview-toolbar button.quick-generate {
-  background: var(--sheet);
-  border: 1px solid var(--rule-strong);
-  color: var(--navy);
-  font-weight: 600;
-}
-
-.preview-toolbar button.quick-generate:hover:not(:disabled) {
-  background: var(--navy-wash);
-  border-color: var(--navy);
-}
-
-.preview-toolbar button.primary {
-  background: var(--navy);
-  border: 1px solid var(--navy);
-  color: var(--sheet);
-  font-weight: 700;
-}
-
-.preview-toolbar button.primary:hover:not(:disabled) {
-  background: var(--navy-deep);
-  border-color: var(--navy-deep);
 }
 
 /* ============ 全文生成进度(纸面板:左说明 · 右等宽计数) ============ */
@@ -180,13 +105,77 @@
   background: var(--amber);
 }
 
-/* ============ 工作区双栏:导航 280px + 阅读器 ============ */
+/* ============ 工作区三栏:导航 + 阅读器 + 操作栏 ============ */
 
 .bid-workspace {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr) 248px;
   gap: 16px;
   align-items: start;
+}
+
+/* ---- 右侧操作栏 ---- */
+
+.chapter-rail {
+  position: sticky;
+  top: 70px;
+  display: grid;
+  gap: 12px;
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+}
+
+.rail-card {
+  display: grid;
+  gap: 10px;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sheet);
+  padding: 14px 16px;
+}
+
+.rail-card h4 {
+  margin: 0 0 2px;
+  color: var(--ink);
+  font-family: var(--font-doc);
+  font-size: 13px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rail-card .model-mode-control,
+.rail-card .model-mode-control small {
+  max-width: none;
+}
+
+.rail-card button {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.rail-card .rail-primary {
+  background: var(--navy);
+  color: #fff;
+  font-weight: 700;
+}
+
+.rail-card .rail-primary:hover:not(:disabled) {
+  background: var(--navy-deep);
+}
+
+.rail-card .rail-secondary {
+  background: var(--sheet);
+  border: 1px solid var(--rule-strong);
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.rail-card .rail-secondary:hover:not(:disabled) {
+  background: var(--navy-wash);
+  border-color: var(--navy);
 }
 
 /* ---- 章节导航(纸面板,sticky) ---- */
@@ -578,6 +567,20 @@
 
 /* ============ 响应式 ============ */
 
+@media (max-width: 1150px) {
+  .bid-workspace {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .chapter-rail {
+    position: static;
+    max-height: none;
+    grid-column: 1 / -1;
+    order: -1;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    align-items: start;
+  }
+}
+
 @media (max-width: 900px) {
   .bid-workspace {
     grid-template-columns: 1fr;
@@ -598,13 +601,6 @@
 }
 
 @media (max-width: 700px) {
-  .preview-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .generation-controls {
-    justify-content: flex-start;
-  }
   .chapter-reader {
     padding: 28px 18px;
     min-height: 560px;
