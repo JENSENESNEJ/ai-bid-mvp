@@ -218,7 +218,21 @@ export default function ProjectDetail() {
   }
 
   if (error && !data) return <main className="detail-shell"><Link href="/">← 返回工作台</Link><p className="error">{error}</p></main>;
-  if (!data) return <main className="detail-shell">正在读取项目…</main>;
+  if (!data) return (
+    <main className="detail-shell">
+      <div className="doc-skeleton">
+        <span className="sk-line sk-eyebrow" />
+        <span className="sk-line sk-title" />
+        <span className="sk-line sk-sub" />
+        <div className="sk-rule" />
+        <div className="sk-tabs"><i /><i /><i /><i /><i /><i /></div>
+        <div className="sk-block" />
+        <div className="sk-block" />
+        <div className="sk-block" />
+        <p>卷宗调取中 · LOADING DOSSIER</p>
+      </div>
+    </main>
+  );
 
   const generating = data.project.status === "outlining" || data.outline?.status === "generating";
   const outlineReady = data.outline?.status === "ready";

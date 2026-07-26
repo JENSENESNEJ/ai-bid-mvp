@@ -123,6 +123,7 @@
   gap: 12px;
   max-height: calc(100vh - 90px);
   overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .rail-card {
@@ -185,6 +186,7 @@
   top: 70px;
   max-height: calc(100vh - 90px);
   overflow-y: auto;
+  scrollbar-width: thin;
   background: var(--sheet);
   border: 1px solid var(--rule);
   border-radius: var(--radius);
