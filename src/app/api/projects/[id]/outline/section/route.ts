@@ -10,6 +10,21 @@ function findNode(chapters:Node[],path:number[]){
   return node||null;
 }
 
+/** 按需取单节点完整数据(含正文与模型对比稿),path 形如 "0.2.1";jsonb 路径提取,避免整列解析 */
+export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}){
+  const {id}=await params;
+  const raw=req.nextUrl.searchParams.get("path")||"";
+  const path=raw.split(".").filter(Boolean).map(Number);
+  if(!path.length||path.length>6||path.some(value=>!Number.isInteger(value)||value<0||value>99))return NextResponse.json({error:"章节路径无效"},{status:400});
+  const jsonbPath=["chapters",String(path[0]),...path.slice(1).flatMap(index=>["children",String(index)])];
+  const outline=await db.query(`SELECT content #> $2 AS node,version,updated_at AS "updatedAt" FROM outlines WHERE project_id=$1`,[id,jsonbPath]);
+  if(!outline.rowCount)return NextResponse.json({error:"项目大纲不存在"},{status:404});
+  const node=outline.rows[0].node;
+  if(!node)return NextResponse.json({error:"章节不存在"},{status:404});
+  const {children:_children,previousGeneration:_previous,previousEditorial:_previousEditorial,compressedEditorial:_compressed,previousNaturalEditorial:_previousNatural,compressedEditorialRollback:_rollback,...detail}=node as Record<string,unknown>;
+  return NextResponse.json({path,outlineVersion:outline.rows[0].version,outlineUpdatedAt:outline.rows[0].updatedAt,node:detail});
+}
+
 export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
   let body:unknown;

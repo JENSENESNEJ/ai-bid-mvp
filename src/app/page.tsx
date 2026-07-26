@@ -4,7 +4,11 @@ import {FormEvent,useEffect,useRef,useState} from "react";
 type Project={id:string;name:string;fileName:string;fileSize:number;status:string;createdAt:string;progress:number;findings:number};
 const labels:Record<string,string>={uploaded:"等待解析",parsing:"正在解析",extracting:"AI提取中",reviewing:"等待复核",confirmed:"已确认",failed:"处理失败"};
 export default function Home(){const [items,setItems]=useState<Project[]>([]);const [busy,setBusy]=useState(false);const [error,setError]=useState("");const input=useRef<HTMLInputElement>(null);
-const load=()=>fetch("/api/projects",{cache:"no-store"}).then(r=>r.json()).then(x=>setItems(x.projects||[])).catch(()=>setError("项目读取失败"));useEffect(()=>{load();const timer=setInterval(load,3000);return()=>clearInterval(timer)},[]);
+const load=()=>fetch("/api/projects",{cache:"no-store"}).then(r=>r.json()).then(x=>setItems(x.projects||[])).catch(()=>setError("项目读取失败"));
+// 有项目在解析/提取时 3 秒轮询,空闲时降到 30 秒
+const active=items.some(x=>["uploaded","parsing","extracting","outlining"].includes(x.status));
+useEffect(()=>{load()},[]);
+useEffect(()=>{const timer=setInterval(load,active?3000:30000);return()=>clearInterval(timer)},[active]);
 async function upload(e:FormEvent){e.preventDefault();const file=input.current?.files?.[0];if(!file)return setError("请选择PDF或DOCX文件");setBusy(true);setError("");const data=new FormData();data.append("file",file);data.append("name",file.name.replace(/\.[^.]+$/, ""));const r=await fetch("/api/projects",{method:"POST",body:data});const x=await r.json();if(r.ok){setItems(v=>[x.project,...v]);if(input.current)input.current.value=""}else setError(x.error||"上传失败");setBusy(false)}
 const review=items.filter(x=>x.status==="reviewing").length;const findings=items.reduce((n,x)=>n+x.findings,0);
 return <main className="shell"><aside><div className="brand"><b>标</b>标智</div><nav><a className="active">▦ 项目工作台</a><a>⇧ 文件解析</a><a>✓ 条款复核</a><a>▤ 标书编制</a></nav><div className="online">● 系统正常<small>AI任务后台处理</small></div><div className="user"><i>管</i><span>管理员<small>企业工作区</small></span></div></aside><section className="workspace"><header><div><em>AI BID WORKSPACE</em><h1>项目工作台</h1><p>上传招标文件，自动梳理关键条款并进入人工复核。</p></div><button onClick={()=>input.current?.click()}>＋ 新建项目</button></header>
